@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manuel Utilisateur — Plateforme DCUS</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #333; }
+
+  /* Sidebar TOC */
+  .toc {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+    background: #1a3a5c; color: white; overflow-y: auto; z-index: 100;
+    padding-bottom: 2rem;
+  }
+  .toc-brand {
+    padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 1rem; font-weight: 700;
+  }
+  .toc-brand span { font-size: 0.75rem; display: block; opacity: 0.65; margin-top: 3px; }
+  .toc h3 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px;
+             color: rgba(255,255,255,0.4); padding: 1.2rem 1.5rem 0.4rem; }
+  .toc a {
+    display: block; padding: 0.5rem 1.5rem; color: rgba(255,255,255,0.75);
+    text-decoration: none; font-size: 0.85rem; transition: all 0.2s;
+  }
+  .toc a:hover { background: rgba(255,255,255,0.1); color: white; }
+  .toc a.sub { padding-left: 2.5rem; font-size: 0.8rem; }
+
+  /* Main */
+  .main { margin-left: 260px; padding: 2.5rem; max-width: 960px; }
+
+  /* Cover */
+  .cover {
+    background: linear-gradient(135deg, #1a3a5c, #2563eb);
+    color: white; border-radius: 16px; padding: 3rem; margin-bottom: 3rem;
+    text-align: center;
+  }
+  .cover .emoji { font-size: 4rem; margin-bottom: 1rem; }
+  .cover h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .cover p { opacity: 0.85; font-size: 1rem; }
+  .cover .meta {
+    display: inline-flex; gap: 1.5rem; margin-top: 1.5rem;
+    background: rgba(255,255,255,0.15); border-radius: 8px; padding: 0.75rem 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Sections */
+  .section { margin-bottom: 3rem; }
+  h2 {
+    font-size: 1.4rem; font-weight: 700; color: #1a3a5c;
+    border-left: 4px solid #2563eb; padding-left: 1rem;
+    margin-bottom: 1.5rem; padding-top: 0.25rem;
+  }
+  h3 { font-size: 1.05rem; font-weight: 600; color: #1a3a5c; margin: 1.5rem 0 0.75rem; }
+  h4 { font-size: 0.9rem; font-weight: 600; color: #374151; margin: 1rem 0 0.5rem; }
+  p { line-height: 1.7; margin-bottom: 0.75rem; color: #4b5563; }
+
+  /* Cards */
+  .card {
+    background: white; border-radius: 12px; padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 1.25rem;
+  }
+  .card-title { font-weight: 700; color: #1a3a5c; margin-bottom: 0.5rem; font-size: 0.95rem; }
+
+  /* Role cards */
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .role-card {
+    border-radius: 10px; padding: 1.25rem; text-align: center; color: white;
+  }
+  .role-card.admin      { background: #1a3a5c; }
+  .role-card.secretaire { background: #7c3aed; }
+  .role-card.agent      { background: #0f766e; }
+  .role-card .role-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .role-card h4 { color: white; font-size: 0.95rem; margin: 0 0 0.5rem; }
+  .role-card ul { list-style: none; font-size: 0.78rem; opacity: 0.9; text-align: left; }
+  .role-card ul li::before { content: "✓ "; }
+
+  /* Steps */
+  .steps { list-style: none; }
+  .steps li {
+    display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start;
+  }
+  .step-num {
+    background: #2563eb; color: white; border-radius: 50%;
+    width: 28px; height: 28px; display: flex; align-items: center;
+    justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-content strong { display: block; color: #1a3a5c; font-size: 0.9rem; }
+  .step-content span { font-size: 0.85rem; color: #6b7280; }
+
+  /* Workflow */
+  .workflow {
+    display: flex; align-items: center; gap: 0; margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+  .wf-step {
+    background: #eff6ff; border: 2px solid #2563eb; border-radius: 8px;
+    padding: 0.6rem 1rem; font-size: 0.8rem; font-weight: 600; color: #1a3a5c;
+    text-align: center;
+  }
+  .wf-arrow {
+    font-size: 1.2rem; color: #2563eb; padding: 0 0.4rem; font-weight: bold;
+  }
+
+  /* Status badges */
+  .statuts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+  .statut {
+    border-radius: 20px; padding: 0.3rem 0.9rem; font-size: 0.8rem;
+    font-weight: 600; color: white;
+  }
+  .s-secondary  { background: #6b7280; }
+  .s-warning    { background: #d97706; }
+  .s-info       { background: #0891b2; }
+  .s-primary    { background: #2563eb; }
+  .s-success    { background: #16a34a; }
+  .s-danger     { background: #dc2626; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: #1a3a5c; color: white; padding: 0.6rem 1rem; text-align: left; }
+  td { padding: 0.55rem 1rem; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f9fafb; }
+
+  /* Alert boxes */
+  .alert {
+    border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0;
+    display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.88rem;
+  }
+  .alert-info    { background: #eff6ff; border-left: 4px solid #2563eb; color: #1e40af; }
+  .alert-warning { background: #fffbeb; border-left: 4px solid #d97706; color: #92400e; }
+  .alert-success { background: #f0fdf4; border-left: 4px solid #16a34a; color: #14532d; }
+  .alert-danger  { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+
+  /* Credentials */
+  .credentials {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 1rem; font-family: monospace; font-size: 0.85rem; margin: 0.5rem 0;
+  }
+
+  /* Separator */
+  hr { border: none; border-top: 2px solid #e5e7eb; margin: 2rem 0; }
+
+  /* Print */
+  @media print {
+    .toc { display: none; }
+    .main { margin-left: 0; }
+  }
+  @media (max-width: 768px) {
+    .toc { display: none; }
+    .main { margin-left: 0; padding: 1.5rem; }
+    .roles { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Table des matières -->
+<nav class="toc">
+  <div class="toc-brand">
+    🎓 DCUS
+    <span>Manuel Utilisateur</span>
+  </div>
+  <h3>Démarrage</h3>
+  <a href="#connexion">Connexion à la plateforme</a>
+  <a href="#roles">Rôles et permissions</a>
+  <a href="#navigation">Navigation générale</a>
+
+  <h3>Réunions</h3>
+  <a href="#reunions-liste">Consulter les réunions</a>
+  <a href="#reunions-creer">Créer une réunion</a>
+  <a href="#reunions-modifier">Modifier / Compte rendu</a>
+  <a href="#reunions-notif">Notifications email</a>
+
+  <h3>Accords</h3>
+  <a href="#accords-liste">Consulter les accords</a>
+  <a href="#accords-creer">Créer un accord</a>
+  <a href="#accords-statut">Mettre à jour le statut</a>
+  <a href="#accords-historique">Historique</a>
+
+  <h3>Exports</h3>
+  <a href="#export-pdf">Exporter en PDF</a>
+  <a href="#export-csv">Exporter en CSV/Excel</a>
+
+  <h3>Administration</h3>
+  <a href="#admin-users">Gérer les utilisateurs</a>
+  <a href="#profil">Mon profil</a>
+
+  <h3>Référence</h3>
+  <a href="#faq">Questions fréquentes</a>
+  <a href="#contacts">Comptes par défaut</a>
+</nav>
+
+<!-- Contenu principal -->
+<div class="main">
+
+  <!-- Couverture -->
+  <div class="cover">
+    <div class="emoji">🎓</div>
+    <h1>Plateforme DCUS</h1>
+    <p>Manuel d'utilisation — Direction de la Coopération Universitaire et Scientifique</p>
+    <p style="font-size:0.85rem;opacity:0.7;margin-top:0.25rem;">DBAU — Ministère de l'Enseignement Supérieur et de la Recherche Scientifique du Bénin</p>
+    <div class="meta">
+      <span>📅 Version 1.0 — 2024</span>
+      <span>🛠️ Laravel 13 + MySQL</span>
+      <span>👥 Multi-rôles</span>
+    </div>
+  </div>
+
+  <!-- CONNEXION -->
+  <div class="section" id="connexion">
+    <h2>1. Connexion à la plateforme</h2>
+
+    <p>Ouvrez votre navigateur et accédez à l'adresse de la plateforme. Vous arriverez sur la page de connexion.</p>
+
+    <div class="card">
+      <ul class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Saisir votre email</strong>
+            <span>Entrez l'adresse email fournie par votre administrateur (ex: votre.nom@dcus.bj)</span>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Saisir votre mot de passe</strong>
+            <span>Entrez le mot de passe fourni lors de la création de votre compte</span>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Cliquer sur "Se connecter"</strong>
+            <span>Vous serez redirigé vers le tableau de bord</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="alert alert-warning">
+      ⚠️ <strong>Mot de passe oublié ?</strong> Contactez la directrice ou l'administrateur pour réinitialiser votre accès.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ROLES -->
+  <div class="section" id="roles">
+    <h2>2. Rôles et permissions</h2>
+    <p>La plateforme fonctionne avec trois niveaux d'accès :</p>
+
+    <div class="roles">
+      <div class="role-card admin">
+        <div class="role-icon">👑</div>
+        <h4>Administratrice</h4>
+        <ul>
+          <li>Tout faire</li>
+          <li>Gérer les utilisateurs</li>
+          <li>Modifier les droits</li>
+          <li>Activer / désactiver des comptes</li>
+        </ul>
+      </div>
+      <div class="role-card secretaire">
+        <div class="role-icon">📋</div>
+        <h4>Secrétaire</h4>
+        <ul>
+          <li>Créer des réunions</li>
+          <li>Envoyer les notifications</li>
+          <li>Créer et modifier des accords</li>
+          <li>Mettre à jour les statuts</li>
+        </ul>
+      </div>
+      <div class="role-card agent">
+        <div class="role-icon">👤</div>
+        <h4>Agent</h4>
+        <ul>
+          <li>Consulter les réunions</li>
+          <li>Consulter les accords</li>
+          <li>Voir l'historique</li>
+          <li>Modifier son profil</li>
+        </ul>
+      </div>
+    </div>
+
+    <table>
+      <tr><th>Action</th><th>Admin</th><th>Secrétaire</th><th>Agent</th></tr>
+      <tr><td>Voir réunions et accords</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Créer une réunion</td><td>✅</td><td>✅</td><td>❌</td></tr>
+      <tr><td>Créer un accord</td><td>✅</td><td>✅</td><td>❌</td></tr>
+      <tr><td>Modifier le statut d'un accord</td><td>✅</td><td>✅</td><td>❌</td></tr>
+      <tr><td>Exporter PDF / CSV</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Gérer les utilisateurs</td><td>✅</td><td>❌</td><td>❌</td></tr>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- NAVIGATION -->
+  <div class="section" id="navigation">
+    <h2>3. Navigation générale</h2>
+    <p>La plateforme est organisée avec une barre latérale (sidebar) à gauche contenant les menus principaux :</p>
+
+    <div class="card">
+      <div class="card-title">🗂️ Menu principal</div>
+      <table>
+        <tr><th>Icône</th><th>Menu</th><th>Rôles concernés</th></tr>
+        <tr><td>🏠</td><td><strong>Tableau de bord</strong> — Vue globale de l'activité</td><td>Tous</td></tr>
+        <tr><td>📅</td><td><strong>Réunions</strong> — Liste et gestion des réunions</td><td>Tous</td></tr>
+        <tr><td>📄</td><td><strong>Accords</strong> — Suivi des accords internationaux</td><td>Tous</td></tr>
+        <tr><td>👤</td><td><strong>Mon profil</strong> — Modifier ses informations</td><td>Tous</td></tr>
+        <tr><td>👥</td><td><strong>Utilisateurs</strong> — Gestion des comptes</td><td>Admin seulement</td></tr>
+      </table>
+    </div>
+
+    <div class="alert alert-info">
+      📱 <strong>Sur mobile</strong> : cliquez sur l'icône ☰ en haut à gauche pour ouvrir le menu.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- RÉUNIONS -->
+  <div class="section" id="reunions-liste">
+    <h2>4. Gestion des Réunions</h2>
+
+    <h3 id="reunions-liste">4.1 Consulter la liste des réunions</h3>
+    <p>Cliquez sur <strong>Réunions</strong> dans le menu. Vous verrez la liste de toutes les réunions enregistrées.</p>
+
+    <div class="card">
+      <div class="card-title">🔍 Filtres disponibles</div>
+      <ul style="margin-left:1.25rem;font-size:0.88rem;color:#4b5563;line-height:2;">
+        <li><strong>Recherche textuelle</strong> : cherche dans le titre, le lieu et le convocateur</li>
+        <li><strong>Filtre par statut</strong> : Planifiée, En cours, Terminée, Annulée</li>
+        <li><strong>Réinitialiser</strong> : efface tous les filtres</li>
+      </ul>
+    </div>
+
+    <h3 id="reunions-creer">4.2 Créer une réunion <span style="font-size:0.75rem;color:#7c3aed;font-weight:normal;">(Secrétaire / Admin)</span></h3>
+
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Nouvelle réunion"</strong>
+          <span>Bouton bleu en haut à droite de la liste des réunions</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Remplir le formulaire</strong>
+          <span>Intitulé*, Date*, Lieu*, Ordre du jour*, Heure (optionnel), Convocateur (optionnel), Statut</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Enregistrer et notifier"</strong>
+          <span>La réunion est créée et un email est automatiquement envoyé à tous les agents DCUS</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="alert alert-success">
+      ✉️ <strong>Email automatique</strong> : dès qu'une réunion est créée, tous les agents reçoivent un email contenant la date, le lieu et l'ordre du jour.
+    </div>
+
+    <h3 id="reunions-modifier">4.3 Modifier une réunion / Saisir le compte rendu</h3>
+    <ol style="margin-left:1.25rem;font-size:0.88rem;color:#4b5563;line-height:2.2;">
+      <li>Cliquez sur l'icône 👁️ pour voir le détail d'une réunion</li>
+      <li>Cliquez sur <strong>"Modifier"</strong> en bas de la fiche</li>
+      <li>Remplissez le champ <strong>Compte rendu</strong> (apparaît après la réunion)</li>
+      <li>Changez le statut en <strong>"Terminée"</strong></li>
+      <li>Cliquez sur <strong>"Enregistrer les modifications"</strong></li>
+    </ol>
+
+    <h3 id="reunions-notif">4.4 Statuts des réunions</h3>
+    <div class="statuts">
+      <span class="statut s-primary">Planifiée</span>
+      <span class="statut s-warning">En cours</span>
+      <span class="statut s-success">Terminée</span>
+      <span class="statut s-danger">Annulée</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ACCORDS -->
+  <div class="section" id="accords-liste">
+    <h2>5. Gestion des Accords</h2>
+
+    <h3>5.1 Cycle de vie d'un accord</h3>
+    <p>Chaque accord suit un parcours défini, du premier contact jusqu'à la clôture :</p>
+
+    <div class="workflow">
+      <div class="wf-step">Identifié</div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">En négociation</div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">Signé</div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">En exécution</div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">Clôturé</div>
+    </div>
+
+    <div class="statuts" style="margin-top:0.75rem;">
+      <span class="statut s-secondary">Identifié</span>
+      <span class="statut s-warning">En négociation</span>
+      <span class="statut s-info">Signé</span>
+      <span class="statut s-primary">En exécution</span>
+      <span class="statut s-success">Clôturé</span>
+      <span class="statut s-danger">Abandonné</span>
+    </div>
+
+    <h3 id="accords-creer">5.2 Créer un accord <span style="font-size:0.75rem;color:#7c3aed;font-weight:normal;">(Secrétaire / Admin)</span></h3>
+
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Nouvel accord"</strong>
+          <span>Bouton bleu en haut à droite de la liste des accords</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Identification</strong>
+          <span>Intitulé*, Pays partenaire*, Institution partenaire*, Université bénéficiaire, Statut initial</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Dates clés (optionnel)</strong>
+          <span>Date d'identification, date de signature, date d'expiration</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Réunion d'origine (optionnel)</strong>
+          <span>Liez l'accord à la réunion lors de laquelle il a été identifié — pour la traçabilité</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Enregistrer l'accord"</strong>
+          <span>L'accord est créé et apparaît dans la liste avec le statut initial choisi</span>
+        </div>
+      </li>
+    </ul>
+
+    <h3 id="accords-statut">5.3 Mettre à jour le statut d'un accord</h3>
+    <p>C'est la fonctionnalité centrale de suivi. Chaque changement de statut est horodaté et tracé.</p>
+
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Ouvrir la fiche de l'accord</strong>
+          <span>Cliquer sur l'icône 👁️ dans la liste</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Panneau "Mettre à jour le statut" (colonne droite)</strong>
+          <span>Sélectionner le nouveau statut dans la liste déroulante</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Ajouter un commentaire (recommandé)</strong>
+          <span>Ex: "Réunion de validation tenue le 15/01/2024 à Paris"</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Valider le changement"</strong>
+          <span>Le statut est mis à jour et l'historique est enrichi automatiquement</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="alert alert-info">
+      💡 <strong>Bonne pratique</strong> : toujours ajouter un commentaire lors d'un changement de statut pour garder une traçabilité complète (ex: "Accord signé lors de la visite du Ministre à Paris").
+    </div>
+
+    <h3 id="accords-historique">5.4 Consulter l'historique d'un accord</h3>
+    <p>Sur la fiche d'un accord, faites défiler vers le bas. L'historique affiche tous les changements de statut avec la date, l'heure, l'agent responsable et le commentaire associé.</p>
+
+    <div class="alert alert-warning">
+      ⚠️ <strong>Accords expirant bientôt</strong> : le tableau de bord affiche une alerte automatique pour les accords dont la date d'expiration est dans les 60 prochains jours.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- EXPORTS -->
+  <div class="section" id="export-pdf">
+    <h2>6. Exporter les données</h2>
+
+    <h3>6.1 Exporter en PDF</h3>
+    <ol style="margin-left:1.25rem;font-size:0.88rem;color:#4b5563;line-height:2.2;">
+      <li>Aller sur la page <strong>Réunions</strong> ou <strong>Accords</strong></li>
+      <li>Appliquer un filtre si souhaité (ex: statut = "Signé")</li>
+      <li>Cliquer sur le bouton <strong>"Exporter"</strong> en haut à droite</li>
+      <li>Sélectionner <strong>"Exporter en PDF"</strong></li>
+      <li>Le fichier PDF se télécharge automatiquement</li>
+    </ol>
+
+    <h3 id="export-csv">6.2 Exporter en CSV (Excel)</h3>
+    <ol style="margin-left:1.25rem;font-size:0.88rem;color:#4b5563;line-height:2.2;">
+      <li>Même procédure, sélectionner <strong>"Exporter en CSV (Excel)"</strong></li>
+      <li>Le fichier <code>.csv</code> se télécharge</li>
+      <li>Ouvrir dans Excel : double-cliquer sur le fichier — il s'ouvre directement</li>
+    </ol>
+
+    <div class="alert alert-success">
+      ✅ <strong>Astuce</strong> : Si vous filtrez d'abord la liste (ex: réunions planifiées uniquement), l'export respecte ce filtre. Vous exportez exactement ce que vous voyez à l'écran.
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ADMIN -->
+  <div class="section" id="admin-users">
+    <h2>7. Administration <span style="font-size:0.85rem;color:#6b7280;font-weight:normal;">(Directrice uniquement)</span></h2>
+
+    <h3>7.1 Créer un nouveau compte utilisateur</h3>
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Aller dans "Utilisateurs"</strong>
+          <span>Menu accessible uniquement à l'administratrice</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Nouvel utilisateur"</strong>
+          <span>Remplir nom, prénom, email, rôle, poste et mot de passe</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Choisir le rôle</strong>
+          <span>Agent (consultation), Secrétaire (gestion), Admin (tout)</span>
+        </div>
+      </li>
+    </ul>
+
+    <h3>7.2 Activer / Désactiver un compte</h3>
+    <p>Dans la liste des utilisateurs, cliquez sur l'icône ⏸ pour désactiver un compte ou ▶ pour le réactiver. Un compte désactivé ne peut plus se connecter mais ses données sont conservées.</p>
+
+    <h3>7.3 Modifier un compte</h3>
+    <p>Cliquez sur l'icône ✏️ à côté de l'utilisateur. Vous pouvez modifier ses informations et réinitialiser son mot de passe (laisser le champ vide pour conserver l'ancien).</p>
+  </div>
+
+  <hr>
+
+  <!-- PROFIL -->
+  <div class="section" id="profil">
+    <h2>8. Mon Profil</h2>
+    <p>Chaque agent peut modifier ses informations personnelles et changer son mot de passe.</p>
+
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Cliquer sur "Mon profil"</strong>
+          <span>Dans la barre latérale gauche, section "Mon compte"</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Modifier ses informations</strong>
+          <span>Nom, prénom, téléphone (l'email ne peut être modifié que par l'admin)</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Changer son mot de passe (optionnel)</strong>
+          <span>Saisir l'ancien mot de passe, puis le nouveau deux fois</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <!-- FAQ -->
+  <div class="section" id="faq">
+    <h2>9. Questions fréquentes</h2>
+
+    <div class="card">
+      <div class="card-title">❓ Je ne reçois pas les emails de notification</div>
+      <p style="margin:0;font-size:0.88rem;">Vérifiez votre dossier "Indésirables" / Spam. Si le problème persiste, contactez l'administratrice pour vérifier la configuration email du serveur.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">❓ Je ne peux pas créer de réunion ou d'accord</div>
+      <p style="margin:0;font-size:0.88rem;">Cette fonctionnalité est réservée aux rôles Secrétaire et Admin. Contactez la directrice pour modifier vos droits d'accès.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">❓ Le PDF exporté affiche des caractères bizarres</div>
+      <p style="margin:0;font-size:0.88rem;">Assurez-vous que la police DejaVu Sans est disponible sur le serveur. Contactez l'administrateur technique.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">❓ Comment supprimer un accord ou une réunion ?</div>
+      <p style="margin:0;font-size:0.88rem;">Ouvrez la fiche et cliquez sur "Supprimer" (icône 🗑️). Une confirmation est demandée. Attention : la suppression est définitive. Préférez changer le statut en "Abandonné" ou "Annulé" pour conserver l'historique.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">❓ Comment lier un accord à une réunion après sa création ?</div>
+      <p style="margin:0;font-size:0.88rem;">Ouvrez l'accord, cliquez sur "Modifier", puis sélectionnez la réunion dans la liste déroulante "Lier à une réunion".</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- COMPTES -->
+  <div class="section" id="contacts">
+    <h2>10. Comptes par défaut (installation)</h2>
+
+    <div class="alert alert-danger">
+      🔐 <strong>Important</strong> : Changez impérativement les mots de passe par défaut après la première connexion !
+    </div>
+
+    <table>
+      <tr><th>Rôle</th><th>Email</th><th>Mot de passe initial</th></tr>
+      <tr><td>👑 Directrice (Admin)</td><td>directrice@dcus.bj</td><td><code>Dcus2024!</code></td></tr>
+      <tr><td>📋 Secrétaire</td><td>secretaire@dcus.bj</td><td><code>Dcus2024!</code></td></tr>
+      <tr><td>👤 Agent</td><td>j.dossou@dcus.bj</td><td><code>Dcus2024!</code></td></tr>
+    </table>
+
+    <div style="margin-top:2rem;text-align:center;color:#9ca3af;font-size:0.82rem;padding-top:1.5rem;border-top:1px solid #e5e7eb;">
+      Plateforme DCUS — DBAU — Ministère de l'Enseignement Supérieur et de la Recherche Scientifique du Bénin<br>
+      Version 1.0 · 2024 · Développé sur Laravel 13
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
