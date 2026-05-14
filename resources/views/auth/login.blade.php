@@ -51,7 +51,7 @@
                          style="height:70px;object-fit:contain;margin-bottom:0.75rem;">
                         <h4>DCUS</h4>
                         <p>Direction de la Coopération Universitaire et Scientifique</p>
-                        <small class="d-block mt-2 opacity-75">DBAU — Bénin</small>
+                        <small class="d-block mt-2 opacity-75">DCUS — Bénin</small>
                     </div>
                     <div class="card-body p-4">
                         <h5 class="text-center text-muted mb-4">Connexion</h5>
