@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Mail\ConvocationCodir;
 use App\Models\Codir;
 use App\Models\CodirAcces;
-use App\Models\CodirParticipant;
 use App\Models\CodirRapport;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -28,32 +27,33 @@ class CodirController extends Controller
     // ── Formulaire création ──────────────────────────────────────────
     public function create()
     {
-        $this->authorizeManage();
+        $this->authorize('create', Codir::class);
+
         return view('codirs.create');
     }
 
     // ── Enregistrement ───────────────────────────────────────────────
     public function store(Request $request)
     {
-        $this->authorizeManage();
+        $this->authorize('create', Codir::class);
 
         $data = $request->validate([
-            'objet'             => 'required|string|max:255',
-            'date'              => 'required|date',
-            'heure_debut'       => 'nullable|date_format:H:i',
-            'heure_fin'         => 'nullable|date_format:H:i',
-            'lieu'              => 'nullable|string|max:255',
-            'presidente'        => 'nullable|string|max:255',
-            'rapporteur'        => 'nullable|string|max:255',
-            'statut'            => 'required|in:planifie,tenu,annule',
+            'objet' => 'required|string|max:255',
+            'date' => 'required|date',
+            'heure_debut' => 'nullable|date_format:H:i',
+            'heure_fin' => 'nullable|date_format:H:i',
+            'lieu' => 'nullable|string|max:255',
+            'presidente' => 'nullable|string|max:255',
+            'rapporteur' => 'nullable|string|max:255',
+            'statut' => 'required|in:planifie,tenu,annule',
             'prochaine_reunion' => 'nullable|date',
 
             // Participants dynamiques
-            'participants'              => 'nullable|array',
-            'participants.*.nom_complet'=> 'required|string|max:255',
-            'participants.*.email'      => 'nullable|email|max:255',
-            'participants.*.fonction'   => 'nullable|string|max:255',
-            'participants.*.present'    => 'nullable',
+            'participants' => 'nullable|array',
+            'participants.*.nom_complet' => 'required|string|max:255',
+            'participants.*.email' => 'nullable|email|max:255',
+            'participants.*.fonction' => 'nullable|string|max:255',
+            'participants.*.present' => 'nullable',
         ]);
 
         $data['created_by'] = Auth::id();
@@ -66,9 +66,9 @@ class CodirController extends Controller
         foreach ($participants as $p) {
             $codir->participants()->create([
                 'nom_complet' => $p['nom_complet'],
-                'email'       => $p['email'] ?? null,
-                'fonction'    => $p['fonction'] ?? null,
-                'present'     => isset($p['present']) ? true : false,
+                'email' => $p['email'] ?? null,
+                'fonction' => $p['fonction'] ?? null,
+                'present' => isset($p['present']) ? true : false,
             ]);
         }
 
@@ -87,7 +87,8 @@ class CodirController extends Controller
             try {
                 Mail::to($agent->email)
                     ->send(new ConvocationCodir($codir, $agent->nom_complet));
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
 
         return redirect()->route('codirs.show', $codir)
@@ -99,8 +100,7 @@ class CodirController extends Controller
     {
         $codir->load(['createur', 'participants', 'rapports.uploadeur', 'acces.utilisateur']);
         $users = User::where('actif', true)->orderBy('nom')->get();
-        $peutTelecharger = $codir->userPeutTelecharger(Auth::id())
-                        || Auth::user()->isAdmin();
+        $peutTelecharger = Auth::user()->can('download', $codir);
 
         return view('codirs.show', compact('codir', 'users', 'peutTelecharger'));
     }
@@ -108,27 +108,28 @@ class CodirController extends Controller
     // ── Formulaire édition ───────────────────────────────────────────
     public function edit(Codir $codir)
     {
-        $this->authorizeManage();
+        $this->authorize('update', $codir);
+
         return view('codirs.edit', compact('codir'));
     }
 
     // ── Mise à jour ──────────────────────────────────────────────────
     public function update(Request $request, Codir $codir)
     {
-        $this->authorizeManage();
+        $this->authorize('update', $codir);
 
         $data = $request->validate([
-            'objet'             => 'required|string|max:255',
-            'date'              => 'required|date',
-            'heure_debut'       => 'nullable|date_format:H:i',
-            'heure_fin'         => 'nullable|date_format:H:i',
-            'lieu'              => 'nullable|string|max:255',
-            'presidente'        => 'nullable|string|max:255',
-            'rapporteur'        => 'nullable|string|max:255',
-            'synthese'          => 'nullable|string',
-            'decisions'         => 'nullable|string',
-            'divers'            => 'nullable|string',
-            'statut'            => 'required|in:planifie,tenu,annule',
+            'objet' => 'required|string|max:255',
+            'date' => 'required|date',
+            'heure_debut' => 'nullable|date_format:H:i',
+            'heure_fin' => 'nullable|date_format:H:i',
+            'lieu' => 'nullable|string|max:255',
+            'presidente' => 'nullable|string|max:255',
+            'rapporteur' => 'nullable|string|max:255',
+            'synthese' => 'nullable|string',
+            'decisions' => 'nullable|string',
+            'divers' => 'nullable|string',
+            'statut' => 'required|in:planifie,tenu,annule',
             'prochaine_reunion' => 'nullable|date',
         ]);
 
@@ -141,7 +142,7 @@ class CodirController extends Controller
     // ── Suppression ──────────────────────────────────────────────────
     public function destroy(Codir $codir)
     {
-        $this->authorizeManage();
+        $this->authorize('delete', $codir);
 
         // Supprimer les fichiers uploadés
         foreach ($codir->rapports as $rapport) {
@@ -149,6 +150,7 @@ class CodirController extends Controller
         }
 
         $codir->delete();
+
         return redirect()->route('codirs.index')
             ->with('success', 'CODIR supprimé.');
     }
@@ -156,7 +158,7 @@ class CodirController extends Controller
     // ── Upload d'un rapport ──────────────────────────────────────────
     public function uploadRapport(Request $request, Codir $codir)
     {
-        $this->authorizeAdmin();
+        $this->authorize('administer', $codir);
 
         $request->validate([
             'rapport' => 'required|file|mimes:pdf,docx,doc|max:10240',
@@ -166,11 +168,11 @@ class CodirController extends Controller
         $path = $file->store('codirs/rapports', 'public');
 
         $codir->rapports()->create([
-            'nom_fichier'   => $file->getClientOriginalName(),
-            'chemin_fichier'=> $path,
-            'type_fichier'  => $file->getClientOriginalExtension(),
-            'taille'        => $file->getSize(),
-            'uploaded_by'   => Auth::id(),
+            'nom_fichier' => $file->getClientOriginalName(),
+            'chemin_fichier' => $path,
+            'type_fichier' => $file->getClientOriginalExtension(),
+            'taille' => $file->getSize(),
+            'uploaded_by' => Auth::id(),
         ]);
 
         return back()->with('success', 'Rapport uploadé avec succès.');
@@ -179,12 +181,9 @@ class CodirController extends Controller
     // ── Téléchargement d'un rapport ──────────────────────────────────
     public function downloadRapport(Codir $codir, CodirRapport $rapport)
     {
-        // Vérifier l'accès
-        if (!Auth::user()->isAdmin() && !$codir->userPeutTelecharger(Auth::id())) {
-            abort(403, 'Vous n\'avez pas accès à ce rapport.');
-        }
+        $this->authorize('download', $codir);
 
-        if (!Storage::disk('public')->exists($rapport->chemin_fichier)) {
+        if (! Storage::disk('public')->exists($rapport->chemin_fichier)) {
             return back()->with('error', 'Fichier introuvable.');
         }
 
@@ -197,45 +196,45 @@ class CodirController extends Controller
     // ── Supprimer un rapport ─────────────────────────────────────────
     public function deleteRapport(Codir $codir, CodirRapport $rapport)
     {
-        $this->authorizeAdmin();
+        $this->authorize('administer', $codir);
         Storage::disk('public')->delete($rapport->chemin_fichier);
         $rapport->delete();
+
         return back()->with('success', 'Rapport supprimé.');
     }
 
     // ── Gérer les accès au téléchargement ───────────────────────────
     public function gererAcces(Request $request, Codir $codir)
     {
-        $this->authorizeAdmin();
+        $this->authorize('administer', $codir);
 
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'action'  => 'required|in:donner,retirer',
+            'action' => 'required|in:donner,retirer',
         ]);
 
         if ($request->action === 'donner') {
             // Éviter les doublons
-            if (!$codir->userPeutTelecharger($request->user_id)) {
+            if (! $codir->userPeutTelecharger($request->user_id)) {
                 CodirAcces::create([
-                    'codir_id'    => $codir->id,
-                    'user_id'     => $request->user_id,
+                    'codir_id' => $codir->id,
+                    'user_id' => $request->user_id,
                     'accorde_par' => Auth::id(),
                 ]);
             }
+
             return back()->with('success', 'Accès accordé.');
         } else {
             $codir->acces()->where('user_id', $request->user_id)->delete();
+
             return back()->with('success', 'Accès retiré.');
         }
     }
 
-
     // ── Générer PDF du compte rendu ──────────────────────────────────
     public function generatePdf(Codir $codir)
     {
-        if (!Auth::user()->isAdmin() && !$codir->userPeutTelecharger(Auth::id())) {
-            abort(403, "Vous n'avez pas accès à ce compte rendu.");
-        }
+        $this->authorize('download', $codir);
 
         $codir->load(['participants', 'createur']);
         $decisions = $codir->decisions()->with('createur')->get();
@@ -244,23 +243,8 @@ class CodirController extends Controller
         $pdf->loadView('exports.codir-pdf', compact('codir', 'decisions'));
         $pdf->setPaper('A4', 'portrait');
 
-        $filename = 'CR-CODIR-' . $codir->date->format('Y-m-d') . '.pdf';
+        $filename = 'CR-CODIR-'.$codir->date->format('Y-m-d').'.pdf';
 
         return $pdf->download($filename);
-    }
-
-    // ── Helpers ──────────────────────────────────────────────────────
-    private function authorizeManage()
-    {
-        if (!Auth::user()->canManage()) {
-            abort(403);
-        }
-    }
-
-    private function authorizeAdmin()
-    {
-        if (!Auth::user()->isAdmin()) {
-            abort(403);
-        }
     }
 }

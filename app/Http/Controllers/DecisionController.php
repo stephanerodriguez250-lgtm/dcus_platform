@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Decision;
 use App\Models\DecisionHistorique;
-use App\Models\Codir;
-use App\Models\Reunion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -36,11 +34,11 @@ class DecisionController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('intitule', 'like', '%' . $request->search . '%');
+            $query->where('intitule', 'like', '%'.$request->search.'%');
         }
 
         $decisions = $query->paginate(15)->withQueryString();
-        $statuts   = Decision::$statuts;
+        $statuts = Decision::$statuts;
 
         // CORRECTION 1 : return était sorti de la fonction index() par erreur
         return view('decisions.index', compact('decisions', 'statuts'));
@@ -49,28 +47,28 @@ class DecisionController extends Controller
     // ── Créer une décision ───────────────────────────────────────────
     public function store(Request $request)
     {
-        $this->authorizeManage();
+        $this->authorize('create', Decision::class);
 
         $data = $request->validate([
-            'intitule'        => 'required|string|max:500',
-            'responsable'     => 'nullable|string|max:255',
-            'echeance'        => 'nullable|date',
-            'statut'          => 'required|in:' . implode(',', array_keys(Decision::$statuts)),
-            'progression'     => 'required|integer|min:0|max:100',
-            'commentaire'     => 'nullable|string',
-            'source_type'     => 'required|in:' . implode(',', array_keys(Decision::$sourceTypeLabels)),
-            'source_id'       => 'nullable|string',
-            'note_numero'     => 'nullable|string|max:100',
-            'note_date'       => 'nullable|date',
+            'intitule' => 'required|string|max:500',
+            'responsable' => 'nullable|string|max:255',
+            'echeance' => 'nullable|date',
+            'statut' => 'required|in:'.implode(',', array_keys(Decision::$statuts)),
+            'progression' => 'required|integer|min:0|max:100',
+            'commentaire' => 'nullable|string',
+            'source_type' => 'required|in:'.implode(',', array_keys(Decision::$sourceTypeLabels)),
+            'source_id' => 'nullable|string',
+            'note_numero' => 'nullable|string|max:100',
+            'note_date' => 'nullable|date',
             'note_expediteur' => 'nullable|string|max:255',
-            'note_objet'      => 'nullable|string|max:500',
-            'note_fichier'    => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'note_objet' => 'nullable|string|max:500',
+            'note_fichier' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        $data['codir_id']   = null;
+        $data['codir_id'] = null;
         $data['reunion_id'] = null;
 
-        if (!empty($request->source_id)) {
+        if (! empty($request->source_id)) {
             [$type, $id] = explode('_', $request->source_id, 2);
 
             if ($type === 'codir' && is_numeric($id)) {
@@ -98,12 +96,12 @@ class DecisionController extends Controller
         $decision = Decision::create($data);
 
         DecisionHistorique::create([
-            'decision_id'       => $decision->id,
-            'ancien_statut'     => null,
-            'nouveau_statut'    => $decision->statut,
-            'progression'       => $decision->progression,
-            'commentaire'       => 'Décision créée.',
-            'modifie_par'       => Auth::id(),
+            'decision_id' => $decision->id,
+            'ancien_statut' => null,
+            'nouveau_statut' => $decision->statut,
+            'progression' => $decision->progression,
+            'commentaire' => 'Décision créée.',
+            'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
 
@@ -114,17 +112,18 @@ class DecisionController extends Controller
     public function show(Decision $decision)
     {
         $decision->load(['codir', 'reunion', 'createur',
-                         'historiques.modificateur']);
+            'historiques.modificateur']);
+
         return view('decisions.show', compact('decision'));
     }
 
     // ── Mise à jour du statut et progression ─────────────────────────
     public function update(Request $request, Decision $decision)
     {
-        $this->authorizeManage();
+        $this->authorize('update', $decision);
 
         $data = $request->validate([
-            'statut'      => 'required|in:' . implode(',', array_keys(Decision::$statuts)),
+            'statut' => 'required|in:'.implode(',', array_keys(Decision::$statuts)),
             'progression' => 'required|integer|min:0|max:100',
             'commentaire' => 'nullable|string|max:1000',
         ]);
@@ -134,12 +133,12 @@ class DecisionController extends Controller
         $decision->update($data);
 
         DecisionHistorique::create([
-            'decision_id'       => $decision->id,
-            'ancien_statut'     => $ancienStatut,
-            'nouveau_statut'    => $data['statut'],
-            'progression'       => $data['progression'],
-            'commentaire'       => $data['commentaire'] ?? null,
-            'modifie_par'       => Auth::id(),
+            'decision_id' => $decision->id,
+            'ancien_statut' => $ancienStatut,
+            'nouveau_statut' => $data['statut'],
+            'progression' => $data['progression'],
+            'commentaire' => $data['commentaire'] ?? null,
+            'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
 
@@ -149,31 +148,24 @@ class DecisionController extends Controller
     // ── Suppression ──────────────────────────────────────────────────
     public function destroy(Decision $decision)
     {
-        $this->authorizeManage();
+        $this->authorize('delete', $decision);
 
         if ($decision->note_fichier) {
             Storage::disk('public')->delete($decision->note_fichier);
         }
 
         $decision->delete();
+
         return back()->with('success', 'Décision supprimée.');
     }
 
     // ── Télécharger la pièce jointe d'une note ministérielle ─────────
     public function downloadNote(Decision $decision)
     {
-        if (!$decision->note_fichier || !Storage::disk('public')->exists($decision->note_fichier)) {
+        if (! $decision->note_fichier || ! Storage::disk('public')->exists($decision->note_fichier)) {
             abort(404);
         }
-        return Storage::disk('public')->download($decision->note_fichier);
-    }
 
-    // ── Autorisation ─────────────────────────────────────────────────
-    // CORRECTION 2 : accolade fermante manquante sur authorizeManage()
-    private function authorizeManage(): void
-    {
-        if (!Auth::user()->canManage()) {
-            abort(403);
-        }
+        return Storage::disk('public')->download($decision->note_fichier);
     }
 }

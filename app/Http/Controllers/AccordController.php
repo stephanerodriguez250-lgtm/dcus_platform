@@ -21,15 +21,15 @@ class AccordController extends Controller
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('titre', 'like', '%' . $request->search . '%')
-                  ->orWhere('institution_partenaire', 'like', '%' . $request->search . '%')
-                  ->orWhere('pays_partenaire', 'like', '%' . $request->search . '%')
-                  ->orWhere('universite_beneficiaire', 'like', '%' . $request->search . '%');
+                $q->where('titre', 'like', '%'.$request->search.'%')
+                    ->orWhere('institution_partenaire', 'like', '%'.$request->search.'%')
+                    ->orWhere('pays_partenaire', 'like', '%'.$request->search.'%')
+                    ->orWhere('universite_beneficiaire', 'like', '%'.$request->search.'%');
             });
         }
 
         $accords = $query->paginate(10)->withQueryString();
-        $statuts  = Accord::$statuts;
+        $statuts = Accord::$statuts;
 
         return view('accords.index', compact('accords', 'statuts'));
     }
@@ -37,29 +37,30 @@ class AccordController extends Controller
     // Formulaire de création
     public function create(Request $request)
     {
-        $this->authorizeManage();
-        $statuts  = Accord::$statuts;
+        $this->authorize('create', Accord::class);
+        $statuts = Accord::$statuts;
         $reunions = Reunion::orderByDesc('date')->get();
         $reunion_id = $request->get('reunion_id');
+
         return view('accords.create', compact('statuts', 'reunions', 'reunion_id'));
     }
 
     // Enregistrement
     public function store(Request $request)
     {
-        $this->authorizeManage();
+        $this->authorize('create', Accord::class);
 
         $data = $request->validate([
-            'titre'                   => 'required|string|max:255',
-            'institution_partenaire'  => 'required|string|max:255',
-            'pays_partenaire'         => 'required|string|max:255',
+            'titre' => 'required|string|max:255',
+            'institution_partenaire' => 'required|string|max:255',
+            'pays_partenaire' => 'required|string|max:255',
             'universite_beneficiaire' => 'nullable|string|max:255',
-            'description'             => 'nullable|string',
-            'date_identification'     => 'nullable|date',
-            'date_signature'          => 'nullable|date',
-            'date_expiration'         => 'nullable|date|after_or_equal:date_signature',
-            'statut'                  => 'required|in:' . implode(',', array_keys(Accord::$statuts)),
-            'reunion_id'              => 'nullable|exists:reunions,id',
+            'description' => 'nullable|string',
+            'date_identification' => 'nullable|date',
+            'date_signature' => 'nullable|date',
+            'date_expiration' => 'nullable|date|after_or_equal:date_signature',
+            'statut' => 'required|in:'.implode(',', array_keys(Accord::$statuts)),
+            'reunion_id' => 'nullable|exists:reunions,id',
         ]);
 
         $data['created_by'] = Auth::id();
@@ -67,11 +68,11 @@ class AccordController extends Controller
 
         // Enregistrer dans l'historique
         AccordHistorique::create([
-            'accord_id'        => $accord->id,
-            'ancien_statut'    => null,
-            'nouveau_statut'   => $accord->statut,
-            'commentaire'      => 'Accord créé.',
-            'modifie_par'      => Auth::id(),
+            'accord_id' => $accord->id,
+            'ancien_statut' => null,
+            'nouveau_statut' => $accord->statut,
+            'commentaire' => 'Accord créé.',
+            'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
 
@@ -83,33 +84,35 @@ class AccordController extends Controller
     public function show(Accord $accord)
     {
         $accord->load(['reunion', 'createur', 'historiques.modificateur']);
+
         return view('accords.show', compact('accord'));
     }
 
     // Formulaire d'édition
     public function edit(Accord $accord)
     {
-        $this->authorizeManage();
-        $statuts  = Accord::$statuts;
+        $this->authorize('update', $accord);
+        $statuts = Accord::$statuts;
         $reunions = Reunion::orderByDesc('date')->get();
+
         return view('accords.edit', compact('accord', 'statuts', 'reunions'));
     }
 
     // Mise à jour
     public function update(Request $request, Accord $accord)
     {
-        $this->authorizeManage();
+        $this->authorize('update', $accord);
 
         $data = $request->validate([
-            'titre'                   => 'required|string|max:255',
-            'institution_partenaire'  => 'required|string|max:255',
-            'pays_partenaire'         => 'required|string|max:255',
+            'titre' => 'required|string|max:255',
+            'institution_partenaire' => 'required|string|max:255',
+            'pays_partenaire' => 'required|string|max:255',
             'universite_beneficiaire' => 'nullable|string|max:255',
-            'description'             => 'nullable|string',
-            'date_identification'     => 'nullable|date',
-            'date_signature'          => 'nullable|date',
-            'date_expiration'         => 'nullable|date',
-            'reunion_id'              => 'nullable|exists:reunions,id',
+            'description' => 'nullable|string',
+            'date_identification' => 'nullable|date',
+            'date_signature' => 'nullable|date',
+            'date_expiration' => 'nullable|date',
+            'reunion_id' => 'nullable|exists:reunions,id',
         ]);
 
         $accord->update($data);
@@ -121,10 +124,10 @@ class AccordController extends Controller
     // Mise à jour du statut uniquement
     public function updateStatut(Request $request, Accord $accord)
     {
-        $this->authorizeManage();
+        $this->authorize('update', $accord);
 
         $data = $request->validate([
-            'statut'      => 'required|in:' . implode(',', array_keys(Accord::$statuts)),
+            'statut' => 'required|in:'.implode(',', array_keys(Accord::$statuts)),
             'commentaire' => 'nullable|string|max:500',
         ]);
 
@@ -135,7 +138,7 @@ class AccordController extends Controller
         }
 
         // Mise à jour dates automatiques
-        if ($data['statut'] === 'signe' && !$accord->date_signature) {
+        if ($data['statut'] === 'signe' && ! $accord->date_signature) {
             $accord->date_signature = today();
         }
 
@@ -143,11 +146,11 @@ class AccordController extends Controller
         $accord->save();
 
         AccordHistorique::create([
-            'accord_id'         => $accord->id,
-            'ancien_statut'     => $ancienStatut,
-            'nouveau_statut'    => $data['statut'],
-            'commentaire'       => $data['commentaire'] ?? null,
-            'modifie_par'       => Auth::id(),
+            'accord_id' => $accord->id,
+            'ancien_statut' => $ancienStatut,
+            'nouveau_statut' => $data['statut'],
+            'commentaire' => $data['commentaire'] ?? null,
+            'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
 
@@ -157,16 +160,10 @@ class AccordController extends Controller
     // Suppression
     public function destroy(Accord $accord)
     {
-        $this->authorizeManage();
+        $this->authorize('delete', $accord);
         $accord->delete();
+
         return redirect()->route('accords.index')
             ->with('success', 'Accord supprimé.');
-    }
-
-    private function authorizeManage()
-    {
-        if (!Auth::user()->canManage()) {
-            abort(403, 'Accès non autorisé.');
-        }
     }
 }
