@@ -29,6 +29,9 @@
         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nouveauDossierModal">
             <i class="bi bi-folder-plus me-2"></i>Nouveau dossier
         </button>
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#partagerModal">
+            <i class="bi bi-share me-2"></i>Partager
+        </button>
         <a href="{{ route('archives.fichiers.create', $dossier ? ['dossier' => $dossier->id] : []) }}" class="btn btn-primary">
             <i class="bi bi-file-earmark-plus me-2"></i>Ajouter un fichier
         </a>
@@ -41,7 +44,8 @@
             <table class="table table-hover mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4">Nom</th>
+                        <th class="ps-4" style="width: 40px;"></th>
+                        <th>Nom</th>
                         <th>Numéro</th>
                         <th>Taille</th>
                         <th>Ajouté le</th>
@@ -51,12 +55,13 @@
                 <tbody>
                     @forelse($sousDossiers as $sousDossier)
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-4"></td>
+                        <td>
                             <a href="{{ route('archives.index', ['dossier' => $sousDossier->id]) }}" class="text-decoration-none">
                                 <i class="bi bi-folder-fill text-warning me-2"></i>{{ $sousDossier->nom }}
                             </a>
                         </td>
-                        <td colspan="2" class="text-muted small">Dossier</td>
+                        <td colspan="3" class="text-muted small">Dossier</td>
                         <td class="text-end pe-4">
                             <button type="button" class="btn btn-sm btn-outline-secondary me-1"
                                     data-bs-toggle="modal" data-bs-target="#renommerDossier{{ $sousDossier->id }}" title="Renommer">
@@ -98,7 +103,13 @@
                     @forelse($fichiers as $fichier)
                     <tr>
                         <td class="ps-4">
+                            <input type="checkbox" name="fichier_ids[]" value="{{ $fichier->id }}" form="partage-form">
+                        </td>
+                        <td>
                             <i class="bi {{ $fichier->icone }} me-2"></i>{{ $fichier->intitule }}
+                            @if($fichier->partageOrigine)
+                            <div class="text-muted small">Partagé par {{ $fichier->partageOrigine->partagePar->nom_complet }}</div>
+                            @endif
                         </td>
                         <td>{{ $fichier->numero ?? '—' }}</td>
                         <td>{{ $fichier->taille_formatee }}</td>
@@ -121,7 +132,7 @@
 
                     @if($sousDossiers->isEmpty() && $fichiers->isEmpty())
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-5">
+                        <td colspan="6" class="text-center text-muted py-5">
                             <i class="bi bi-folder2 fs-2 d-block mb-2"></i>
                             Ce dossier est vide
                         </td>
@@ -156,6 +167,46 @@
                     <button type="submit" class="btn btn-primary">Créer</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Formulaire de partage (les cases à cocher lui sont rattachées via l'attribut form, même si elles sont ailleurs dans la page) -->
+<form id="partage-form" method="POST" action="{{ route('archives.partages.store') }}">
+    @csrf
+    @if($dossier)
+    <input type="hidden" name="retour_dossier_id" value="{{ $dossier->id }}">
+    @endif
+</form>
+
+<!-- Modal partager -->
+<div class="modal fade" id="partagerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Partager les fichiers sélectionnés</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                @error('fichier_ids')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                @error('destinataire_ids')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                <label class="form-label fw-semibold">Partager à :</label>
+                @forelse($autresUtilisateurs as $utilisateur)
+                <div class="form-check">
+                    <input type="checkbox" name="destinataire_ids[]" value="{{ $utilisateur->id }}"
+                           form="partage-form" class="form-check-input" id="destinataire{{ $utilisateur->id }}">
+                    <label class="form-check-label" for="destinataire{{ $utilisateur->id }}">
+                        {{ $utilisateur->nom_complet }}
+                    </label>
+                </div>
+                @empty
+                <p class="text-muted small mb-0">Aucun autre utilisateur disponible.</p>
+                @endforelse
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="partage-form" class="btn btn-primary">Partager</button>
+            </div>
         </div>
     </div>
 </div>

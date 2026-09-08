@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ArchiveFichier;
 use App\Models\ArchiveFolder;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -26,7 +27,9 @@ class ArchiveController extends Controller
 
         $filAriane = $dossier ? $dossier->filAriane() : [];
 
-        return view('archives.index', compact('dossier', 'sousDossiers', 'fichiers', 'filAriane'));
+        $autresUtilisateurs = User::where('id', '!=', Auth::id())->where('actif', true)->orderBy('nom')->get();
+
+        return view('archives.index', compact('dossier', 'sousDossiers', 'fichiers', 'filAriane', 'autresUtilisateurs'));
     }
 
     public function storeDossier(Request $request)

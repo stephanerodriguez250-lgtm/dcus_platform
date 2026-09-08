@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ArchiveController;
+use App\Http\Controllers\ArchivePartageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CodirController;
 use App\Http\Controllers\DashboardController;
@@ -89,6 +90,13 @@ Route::middleware('auth')->group(function () {
         ->name('archives.dossiers.update');
     Route::delete('archives/dossiers/{dossier}', [ArchiveController::class, 'destroyDossier'])
         ->name('archives.dossiers.destroy');
+
+    Route::get('archives/partages', [ArchivePartageController::class, 'index'])
+        ->name('archives.partages.index');
+    Route::post('archives/partages', [ArchivePartageController::class, 'store'])
+        ->name('archives.partages.store');
+    Route::delete('archives/partages/{partage}', [ArchivePartageController::class, 'destroy'])
+        ->name('archives.partages.destroy');
 
     Route::get('archives/{dossier?}', [ArchiveController::class, 'index'])
         ->name('archives.index');
