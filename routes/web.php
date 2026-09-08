@@ -10,6 +10,7 @@ use App\Http\Controllers\DecisionController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\ReunionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,12 @@ Route::middleware('guest')->group(function () {
         ->name('password.reset');
     Route::post('/reinitialiser-mot-de-passe', [PasswordResetController::class, 'reset'])
         ->name('password.update');
+
+    // Inscription sur invitation
+    Route::get('/inscription/{token}', [RegistrationController::class, 'show'])
+        ->name('invitation.accept');
+    Route::post('/inscription', [RegistrationController::class, 'store'])
+        ->name('invitation.store');
 });
 
 // App (authentifié)
@@ -114,5 +121,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('utilisateurs', UserController::class);
         Route::patch('utilisateurs/{user}/toggle', [UserController::class, 'toggle'])
             ->name('utilisateurs.toggle');
+        Route::post('utilisateurs/invitations/{invitation}/renvoyer', [UserController::class, 'renvoyerInvitation'])
+            ->name('utilisateurs.invitations.renvoyer');
+        Route::delete('utilisateurs/invitations/{invitation}', [UserController::class, 'revoquerInvitation'])
+            ->name('utilisateurs.invitations.revoquer');
     });
 });

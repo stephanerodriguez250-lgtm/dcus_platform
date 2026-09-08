@@ -50,7 +50,19 @@
                                 <option value="admin"      {{ old('role', $utilisateur->role) === 'admin'      ? 'selected' : '' }}>Admin</option>
                             </select>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Service</label>
+                            <select name="service" class="form-select @error('service') is-invalid @enderror">
+                                <option value="">— Aucun —</option>
+                                @foreach(\App\Models\User::$services as $code => $label)
+                                    <option value="{{ $code }}" {{ old('service', $utilisateur->service) === $code ? 'selected' : '' }}>
+                                        {{ $code }} — {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('service')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Poste / Fonction</label>
                             <input type="text" name="poste" class="form-control"
                                    value="{{ old('poste', $utilisateur->poste) }}">

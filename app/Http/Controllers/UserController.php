@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserInvitation;
+use App\Notifications\UserInvitationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -27,8 +31,9 @@ class UserController extends Controller
         }
 
         $users = $query->get();
+        $invitations = UserInvitation::orderByDesc('created_at')->get();
 
-        return view('utilisateurs.index', compact('users'));
+        return view('utilisateurs.index', compact('users', 'invitations'));
     }
 
     public function create()
@@ -36,25 +41,19 @@ class UserController extends Controller
         return view('utilisateurs.create');
     }
 
+    // Envoie une invitation par email : l'utilisateur complète lui-même
+    // son inscription (nom, prénom, service, mot de passe).
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nom' => 'required|string|max:100',
-            'prenom' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
+            'email' => 'required|email|unique:users,email|unique:user_invitations,email',
             'role' => 'required|in:admin,secretaire,agent',
-            'poste' => 'nullable|string|max:150',
-            'telephone' => 'nullable|string|max:20',
         ]);
 
-        $data['password'] = Hash::make($data['password']);
-        $data['actif'] = true;
-
-        User::create($data);
+        $this->envoyerInvitation($data['email'], $data['role']);
 
         return redirect()->route('utilisateurs.index')
-            ->with('success', 'Utilisateur créé avec succès.');
+            ->with('success', "Invitation envoyée à {$data['email']}.");
     }
 
     public function edit(User $utilisateur)
@@ -69,6 +68,7 @@ class UserController extends Controller
             'prenom' => 'required|string|max:100',
             'email' => ['required', 'email', Rule::unique('users')->ignore($utilisateur->id)],
             'role' => 'required|in:admin,secretaire,agent',
+            'service' => 'nullable|in:'.implode(',', array_keys(User::$services)),
             'poste' => 'nullable|string|max:150',
             'telephone' => 'nullable|string|max:20',
             'password' => 'nullable|min:8|confirmed',
@@ -107,5 +107,39 @@ class UserController extends Controller
         $msg = $utilisateur->actif ? 'Compte activé.' : 'Compte désactivé.';
 
         return back()->with('success', $msg);
+    }
+
+    // Régénère le token et renvoie l'email d'invitation.
+    public function renvoyerInvitation(UserInvitation $invitation)
+    {
+        $this->envoyerInvitation($invitation->email, $invitation->role);
+
+        return back()->with('success', "Invitation renvoyée à {$invitation->email}.");
+    }
+
+    public function revoquerInvitation(UserInvitation $invitation)
+    {
+        $invitation->delete();
+
+        return back()->with('success', 'Invitation révoquée.');
+    }
+
+    private function envoyerInvitation(string $email, string $role): UserInvitation
+    {
+        $token = Str::random(64);
+
+        $invitation = UserInvitation::updateOrCreate(
+            ['email' => $email],
+            [
+                'role' => $role,
+                'token' => hash('sha256', $token),
+                'invited_by' => auth()->id(),
+                'expires_at' => now()->addDays(7),
+            ]
+        );
+
+        Notification::route('mail', $email)->notify(new UserInvitationNotification($token));
+
+        return $invitation;
     }
 }

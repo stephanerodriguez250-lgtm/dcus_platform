@@ -10,9 +10,59 @@
         <p class="text-muted small mb-0">Gérez les accès et les rôles des agents</p>
     </div>
     <a href="{{ route('utilisateurs.create') }}" class="btn btn-primary">
-        <i class="bi bi-person-plus me-2"></i>Nouvel utilisateur
+        <i class="bi bi-envelope-plus me-2"></i>Inviter un utilisateur
     </a>
 </div>
+
+@if($invitations->isNotEmpty())
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-envelope-paper text-warning"></i>
+        <span>Invitations en attente</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Email</th>
+                    <th>Rôle</th>
+                    <th>Expire le</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($invitations as $invitation)
+                <tr>
+                    <td class="ps-4">{{ $invitation->email }}</td>
+                    <td>{{ $invitation->role_label }}</td>
+                    <td>
+                        {{ $invitation->expires_at->format('d/m/Y') }}
+                        @if($invitation->isExpired())
+                            <span class="badge bg-danger ms-1">Expirée</span>
+                        @endif
+                    </td>
+                    <td class="text-end pe-4">
+                        <form method="POST" action="{{ route('utilisateurs.invitations.renvoyer', $invitation) }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-primary me-1" title="Renvoyer">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('utilisateurs.invitations.revoquer', $invitation) }}"
+                              class="d-inline" onsubmit="return confirm('Révoquer cette invitation ?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Révoquer">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 <!-- Filtres -->
 <div class="card mb-4">
@@ -50,6 +100,7 @@
             <thead class="bg-light">
                 <tr>
                     <th class="ps-4">Agent</th>
+                    <th>Service</th>
                     <th>Poste</th>
                     <th>Rôle</th>
                     <th>Téléphone</th>
@@ -72,6 +123,13 @@
                                 <div class="text-muted small">{{ $user->email }}</div>
                             </div>
                         </div>
+                    </td>
+                    <td>
+                        @if($user->service)
+                            <span title="{{ $user->service_label }}">{{ $user->service }}</span>
+                        @else
+                            —
+                        @endif
                     </td>
                     <td>{{ $user->poste ?? '—' }}</td>
                     <td>
@@ -116,7 +174,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-5">
+                    <td colspan="7" class="text-center text-muted py-5">
                         <i class="bi bi-people fs-2 d-block mb-2"></i>
                         Aucun utilisateur trouvé
                     </td>

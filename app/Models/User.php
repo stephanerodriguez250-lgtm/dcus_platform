@@ -17,6 +17,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'service',
         'telephone',
         'poste',
         'actif',
@@ -32,10 +33,22 @@ class User extends Authenticatable
         'actif' => 'boolean',
     ];
 
+    public static array $services = [
+        'SA' => 'Secrétariat administratif',
+        'SAF' => 'Service administratif et financier',
+        'SSCP' => 'Service de la stratégie de coopération et du partenariat',
+        'SISCUAP' => "Service de l'information et du suivi des activités de coopération universitaire et des accords de partenariat",
+    ];
+
     // --- Accesseurs ---
     public function getNomCompletAttribute(): string
     {
         return $this->prenom.' '.$this->nom;
+    }
+
+    public function getServiceLabelAttribute(): ?string
+    {
+        return self::$services[$this->service] ?? $this->service;
     }
 
     // --- Vérification des rôles ---

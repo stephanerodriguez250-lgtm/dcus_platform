@@ -1,17 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Nouvel utilisateur')
-@section('page-title', 'Nouvel utilisateur')
+@section('title', 'Inviter un utilisateur')
+@section('page-title', 'Inviter un utilisateur')
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-7">
+    <div class="col-lg-6">
         <div class="card">
             <div class="card-header py-3 d-flex align-items-center gap-2">
-                <i class="bi bi-person-plus text-primary"></i>
-                <span>Créer un compte utilisateur</span>
+                <i class="bi bi-envelope-plus text-primary"></i>
+                <span>Inviter un nouvel utilisateur</span>
             </div>
             <div class="card-body p-4">
+                <p class="text-muted small mb-4">
+                    L'utilisateur recevra un email avec un lien pour créer son compte
+                    (nom, prénom, service et mot de passe). Le lien est valable 7 jours.
+                </p>
 
                 @if($errors->any())
                 <div class="alert alert-danger">
@@ -24,18 +28,6 @@
                 <form method="POST" action="{{ route('utilisateurs.store') }}">
                     @csrf
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Nom <span class="text-danger">*</span></label>
-                            <input type="text" name="nom" class="form-control @error('nom') is-invalid @enderror"
-                                   value="{{ old('nom') }}" placeholder="NOM">
-                            @error('nom')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Prénom <span class="text-danger">*</span></label>
-                            <input type="text" name="prenom" class="form-control @error('prenom') is-invalid @enderror"
-                                   value="{{ old('prenom') }}" placeholder="Prénom">
-                            @error('prenom')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
@@ -51,33 +43,11 @@
                             </select>
                             @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold">Poste / Fonction</label>
-                            <input type="text" name="poste" class="form-control"
-                                   value="{{ old('poste') }}" placeholder="Ex: Chargé de Coopération">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Téléphone</label>
-                            <input type="text" name="telephone" class="form-control"
-                                   value="{{ old('telephone') }}" placeholder="+229 ...">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Mot de passe <span class="text-danger">*</span></label>
-                            <input type="password" name="password"
-                                   class="form-control @error('password') is-invalid @enderror"
-                                   placeholder="Minimum 8 caractères">
-                            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Confirmer le mot de passe <span class="text-danger">*</span></label>
-                            <input type="password" name="password_confirmation"
-                                   class="form-control" placeholder="Répéter le mot de passe">
-                        </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-check-lg me-2"></i>Créer le compte
+                            <i class="bi bi-send me-2"></i>Envoyer l'invitation
                         </button>
                         <a href="{{ route('utilisateurs.index') }}" class="btn btn-outline-secondary px-4">
                             Annuler
