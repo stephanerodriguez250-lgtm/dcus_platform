@@ -57,7 +57,40 @@
                             </a>
                         </td>
                         <td colspan="2" class="text-muted small">Dossier</td>
-                        <td class="text-end pe-4">—</td>
+                        <td class="text-end pe-4">
+                            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                    data-bs-toggle="modal" data-bs-target="#renommerDossier{{ $sousDossier->id }}" title="Renommer">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form method="POST" action="{{ route('archives.dossiers.destroy', $sousDossier) }}"
+                                  class="d-inline" onsubmit="return confirm('Supprimer ce dossier et tout son contenu ?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+
+                            <div class="modal fade" id="renommerDossier{{ $sousDossier->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="POST" action="{{ route('archives.dossiers.update', $sousDossier) }}">
+                                            @csrf @method('PATCH')
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Renommer le dossier</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="text" name="nom" class="form-control" value="{{ $sousDossier->nom }}">
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-primary">Renommer</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     @endforelse
