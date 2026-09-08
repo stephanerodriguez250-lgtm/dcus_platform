@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AccordsExport;
+use App\Exports\ReunionsExport;
 use App\Models\Accord;
 use App\Models\Reunion;
 use Illuminate\Http\Request;
@@ -15,7 +17,8 @@ class ExportController extends Controller
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('exports.reunions-pdf', compact('reunions'));
         $pdf->setPaper('A4', 'landscape');
-        return $pdf->download('reunions-dcus-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reunions-dcus-'.now()->format('Y-m-d').'.pdf');
     }
 
     // ─── PDF Accords ─────────────────────────────────────────────
@@ -25,27 +28,32 @@ class ExportController extends Controller
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('exports.accords-pdf', compact('accords'));
         $pdf->setPaper('A4', 'landscape');
-        return $pdf->download('accords-dcus-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('accords-dcus-'.now()->format('Y-m-d').'.pdf');
     }
 
-    // ─── Excel Réunions ──────────────────────────────────────────
-    public function reunionsExcel(Request $request)
+    // ─── CSV Réunions ────────────────────────────────────────────
+    public function reunionsCsv(Request $request)
     {
         $reunions = $this->filtrerReunions($request);
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\ReunionsExport($reunions),
-            'reunions-dcus-' . now()->format('Y-m-d') . '.xlsx'
-        );
+        $csv = (new ReunionsExport($reunions))->toCsv();
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="reunions-dcus-'.now()->format('Y-m-d').'.csv"',
+        ]);
     }
 
-    // ─── Excel Accords ───────────────────────────────────────────
-    public function accordsExcel(Request $request)
+    // ─── CSV Accords ─────────────────────────────────────────────
+    public function accordsCsv(Request $request)
     {
         $accords = $this->filtrerAccords($request);
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\AccordsExport($accords),
-            'accords-dcus-' . now()->format('Y-m-d') . '.xlsx'
-        );
+        $csv = (new AccordsExport($accords))->toCsv();
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="accords-dcus-'.now()->format('Y-m-d').'.csv"',
+        ]);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────
@@ -55,6 +63,7 @@ class ExportController extends Controller
         if ($request->filled('statut')) {
             $query->where('statut', $request->statut);
         }
+
         return $query->get();
     }
 
@@ -64,6 +73,7 @@ class ExportController extends Controller
         if ($request->filled('statut')) {
             $query->where('statut', $request->statut);
         }
+
         return $query->get();
     }
 }

@@ -3,36 +3,53 @@
 namespace App\Exports;
 
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
-class AccordsExport implements FromCollection, WithHeadings, WithStyles, WithTitle, ShouldAutoSize
+class AccordsExport
 {
     public function __construct(private Collection $accords) {}
 
-    public function collection(): Collection
+    public function toCsv(): string
     {
-        return $this->accords->map(fn($a) => [
-            'titre'                  => $a->titre,
-            'pays_partenaire'        => $a->pays_partenaire,
-            'institution_partenaire' => $a->institution_partenaire,
-            'universite'             => $a->universite_beneficiaire ?? '—',
-            'statut'                 => $a->statut_label,
-            'reunion_origine'        => $a->reunion?->titre ?? '—',
-            'date_identification'    => $a->date_identification?->format('d/m/Y') ?? '—',
-            'date_signature'         => $a->date_signature?->format('d/m/Y') ?? '—',
-            'date_expiration'        => $a->date_expiration?->format('d/m/Y') ?? '—',
-            'cree_par'               => $a->createur->nom_complet,
-            'date_creation'          => $a->created_at->format('d/m/Y'),
-        ]);
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->fromArray($this->headings(), null, 'A1');
+        $sheet->fromArray($this->rows(), null, 'A2');
+
+        $writer = new Csv($spreadsheet);
+        $writer->setDelimiter(';');
+        $writer->setEnclosure('"');
+        $writer->setUseBOM(true);
+
+        $stream = fopen('php://temp', 'r+');
+        $writer->save($stream);
+        rewind($stream);
+        $content = stream_get_contents($stream);
+        fclose($stream);
+
+        return $content;
     }
 
-    public function headings(): array
+    private function rows(): array
+    {
+        return $this->accords->map(fn ($a) => [
+            $a->titre,
+            $a->pays_partenaire,
+            $a->institution_partenaire,
+            $a->universite_beneficiaire ?? '—',
+            $a->statut_label,
+            $a->reunion?->titre ?? '—',
+            $a->date_identification?->format('d/m/Y') ?? '—',
+            $a->date_signature?->format('d/m/Y') ?? '—',
+            $a->date_expiration?->format('d/m/Y') ?? '—',
+            $a->createur->nom_complet,
+            $a->created_at->format('d/m/Y'),
+        ])->all();
+    }
+
+    private function headings(): array
     {
         return [
             'Intitulé de l\'accord',
@@ -47,21 +64,5 @@ class AccordsExport implements FromCollection, WithHeadings, WithStyles, WithTit
             'Créé par',
             'Date enregistrement',
         ];
-    }
-
-    public function styles(Worksheet $sheet): array
-    {
-        return [
-            1 => [
-                'font'    => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1a3a5c']],
-                'alignment' => ['horizontal' => 'center'],
-            ],
-        ];
-    }
-
-    public function title(): string
-    {
-        return 'Accords DCUS';
     }
 }

@@ -3,35 +3,52 @@
 namespace App\Exports;
 
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
-class ReunionsExport implements FromCollection, WithHeadings, WithStyles, WithTitle, ShouldAutoSize
+class ReunionsExport
 {
     public function __construct(private Collection $reunions) {}
 
-    public function collection(): Collection
+    public function toCsv(): string
     {
-        return $this->reunions->map(fn($r) => [
-            'titre'         => $r->titre,
-            'date'          => $r->date->format('d/m/Y'),
-            'heure'         => $r->heure ?? '—',
-            'lieu'          => $r->lieu,
-            'convocateur'   => $r->convocateur ?? '—',
-            'statut'        => $r->statut_label,
-            'accords'       => $r->accords()->count(),
-            'compte_rendu'  => $r->compte_rendu ? 'Oui' : 'Non',
-            'cree_par'      => $r->createur->nom_complet,
-            'date_creation' => $r->created_at->format('d/m/Y'),
-        ]);
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->fromArray($this->headings(), null, 'A1');
+        $sheet->fromArray($this->rows(), null, 'A2');
+
+        $writer = new Csv($spreadsheet);
+        $writer->setDelimiter(';');
+        $writer->setEnclosure('"');
+        $writer->setUseBOM(true);
+
+        $stream = fopen('php://temp', 'r+');
+        $writer->save($stream);
+        rewind($stream);
+        $content = stream_get_contents($stream);
+        fclose($stream);
+
+        return $content;
     }
 
-    public function headings(): array
+    private function rows(): array
+    {
+        return $this->reunions->map(fn ($r) => [
+            $r->titre,
+            $r->date->format('d/m/Y'),
+            $r->heure ?? '—',
+            $r->lieu,
+            $r->convocateur ?? '—',
+            $r->statut_label,
+            $r->accords()->count(),
+            $r->compte_rendu ? 'Oui' : 'Non',
+            $r->createur->nom_complet,
+            $r->created_at->format('d/m/Y'),
+        ])->all();
+    }
+
+    private function headings(): array
     {
         return [
             'Intitulé de la réunion',
@@ -45,21 +62,5 @@ class ReunionsExport implements FromCollection, WithHeadings, WithStyles, WithTi
             'Créé par',
             'Date enregistrement',
         ];
-    }
-
-    public function styles(Worksheet $sheet): array
-    {
-        return [
-            1 => [
-                'font'    => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1a3a5c']],
-                'alignment' => ['horizontal' => 'center'],
-            ],
-        ];
-    }
-
-    public function title(): string
-    {
-        return 'Réunions DCUS';
     }
 }
