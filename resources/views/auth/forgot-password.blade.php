@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCUS — Connexion</title>
+    <title>DCUS — Mot de passe oublié</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -35,10 +35,6 @@
             opacity: 0.8;
             margin: 0;
         }
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
     </style>
 </head>
 <body>
@@ -47,25 +43,33 @@
             <div class="col-md-5 col-lg-4">
                 <div class="card login-card">
                     <div class="logo-section">
-    <img src="https://enseignementsuperieur.gouv.bj/dist/img/logo.png"
-                         style="height:70px;object-fit:contain;margin-bottom:0.75rem;">
+                        <img src="https://enseignementsuperieur.gouv.bj/dist/img/logo.png"
+                             style="height:70px;object-fit:contain;margin-bottom:0.75rem;">
                         <h4>DCUS</h4>
                         <p>Direction de la Coopération Universitaire et Scientifique</p>
                         <small class="d-block mt-2 opacity-75">DCUS — Bénin</small>
                     </div>
                     <div class="card-body p-4">
-                        <h5 class="text-center text-muted mb-4">Connexion</h5>
+                        <h5 class="text-center text-muted mb-2">Mot de passe oublié</h5>
+                        <p class="text-center text-muted small mb-4">
+                            Entrez votre email, nous vous enverrons un lien de réinitialisation.
+                        </p>
 
-                        @if ($errors->any())
-                            <div class="alert alert-danger alert-sm py-2">
-                                <i class="bi bi-exclamation-circle me-1"></i>
-                                {{ $errors->first() }}
+                        @if (session('status'))
+                            <div class="alert alert-success alert-sm py-2">
+                                <i class="bi bi-check-circle me-1"></i>{{ session('status') }}
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('login') }}">
+                        @if ($errors->any())
+                            <div class="alert alert-danger alert-sm py-2">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ $errors->first() }}
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('password.email') }}">
                             @csrf
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label class="form-label fw-semibold">Email</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
@@ -73,25 +77,16 @@
                                            value="{{ old('email') }}" placeholder="votre@email.bj" required autofocus>
                                 </div>
                             </div>
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">Mot de passe</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" name="password" class="form-control"
-                                           placeholder="••••••••" required>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                                    <label class="form-check-label text-muted small" for="remember">Se souvenir de moi</label>
-                                </div>
-                                <a href="{{ route('password.request') }}" class="text-decoration-none small">Mot de passe oublié ?</a>
-                            </div>
                             <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                                <i class="bi bi-send me-2"></i>Envoyer le lien
                             </button>
                         </form>
+
+                        <p class="text-center mt-3 mb-0">
+                            <a href="{{ route('login') }}" class="text-decoration-none small">
+                                <i class="bi bi-arrow-left"></i> Retour à la connexion
+                            </a>
+                        </p>
                     </div>
                 </div>
                 <p class="text-center text-white-50 mt-3 small">

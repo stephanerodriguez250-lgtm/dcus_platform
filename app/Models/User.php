@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -34,7 +35,7 @@ class User extends Authenticatable
     // --- Accesseurs ---
     public function getNomCompletAttribute(): string
     {
-        return $this->prenom . ' ' . $this->nom;
+        return $this->prenom.' '.$this->nom;
     }
 
     // --- Vérification des rôles ---
@@ -56,6 +57,11 @@ class User extends Authenticatable
     public function canManage(): bool
     {
         return in_array($this->role, ['admin', 'secretaire']);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     // --- Relations ---
