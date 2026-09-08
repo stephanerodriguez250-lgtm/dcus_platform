@@ -24,7 +24,7 @@ return new class extends Migration
                 'signe',
                 'en_execution',
                 'cloture',
-                'abandonne'
+                'abandonne',
             ])->default('identifie');
             $table->foreignId('reunion_id')->nullable()->constrained('reunions')->nullOnDelete();
             $table->foreignId('created_by')->constrained('users');

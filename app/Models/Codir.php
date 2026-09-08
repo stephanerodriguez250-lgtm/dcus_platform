@@ -16,20 +16,20 @@ class Codir extends Model
     ];
 
     protected $casts = [
-        'date'              => 'date',
+        'date' => 'date',
         'prochaine_reunion' => 'date',
     ];
 
     public static array $statuts = [
         'planifie' => 'Planifié',
-        'tenu'     => 'Tenu',
-        'annule'   => 'Annulé',
+        'tenu' => 'Tenu',
+        'annule' => 'Annulé',
     ];
 
     public static array $statutColors = [
         'planifie' => 'primary',
-        'tenu'     => 'success',
-        'annule'   => 'danger',
+        'tenu' => 'success',
+        'annule' => 'danger',
     ];
 
     public function getStatutLabelAttribute(): string

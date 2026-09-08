@@ -24,8 +24,13 @@ class CodirRapport extends Model
     public function getTailleFormateeAttribute(): string
     {
         $bytes = $this->taille ?? 0;
-        if ($bytes >= 1048576) return round($bytes / 1048576, 2) . ' Mo';
-        if ($bytes >= 1024)    return round($bytes / 1024, 1) . ' Ko';
-        return $bytes . ' o';
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 2).' Mo';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 1).' Ko';
+        }
+
+        return $bytes.' o';
     }
 }

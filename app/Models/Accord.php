@@ -18,26 +18,26 @@ class Accord extends Model
 
     protected $casts = [
         'date_identification' => 'date',
-        'date_signature'      => 'date',
-        'date_expiration'     => 'date',
+        'date_signature' => 'date',
+        'date_expiration' => 'date',
     ];
 
     public static array $statuts = [
-        'identifie'      => 'Identifié',
+        'identifie' => 'Identifié',
         'en_negotiation' => 'En négociation',
-        'signe'          => 'Signé',
-        'en_execution'   => 'En exécution',
-        'cloture'        => 'Clôturé',
-        'abandonne'      => 'Abandonné',
+        'signe' => 'Signé',
+        'en_execution' => 'En exécution',
+        'cloture' => 'Clôturé',
+        'abandonne' => 'Abandonné',
     ];
 
     public static array $statutColors = [
-        'identifie'      => 'secondary',
+        'identifie' => 'secondary',
         'en_negotiation' => 'warning',
-        'signe'          => 'info',
-        'en_execution'   => 'primary',
-        'cloture'        => 'success',
-        'abandonne'      => 'danger',
+        'signe' => 'info',
+        'en_execution' => 'primary',
+        'cloture' => 'success',
+        'abandonne' => 'danger',
     ];
 
     public function getStatutLabelAttribute(): string
@@ -64,6 +64,6 @@ class Accord extends Model
     public function historiques()
     {
         return $this->hasMany(AccordHistorique::class, 'accord_id')
-                    ->orderByDesc('date_modification');
+            ->orderByDesc('date_modification');
     }
 }

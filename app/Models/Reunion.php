@@ -19,16 +19,16 @@ class Reunion extends Model
 
     public static array $statuts = [
         'planifiee' => 'Planifiée',
-        'en_cours'  => 'En cours',
-        'terminee'  => 'Terminée',
-        'annulee'   => 'Annulée',
+        'en_cours' => 'En cours',
+        'terminee' => 'Terminée',
+        'annulee' => 'Annulée',
     ];
 
     public static array $statutColors = [
         'planifiee' => 'primary',
-        'en_cours'  => 'warning',
-        'terminee'  => 'success',
-        'annulee'   => 'danger',
+        'en_cours' => 'warning',
+        'terminee' => 'success',
+        'annulee' => 'danger',
     ];
 
     public function getStatutLabelAttribute(): string

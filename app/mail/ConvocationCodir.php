@@ -14,15 +14,15 @@ class ConvocationCodir extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public Codir  $codir,
+        public Codir $codir,
         public string $destinataire_nom,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[DCUS] Convocation CODIR — ' . $this->codir->objet
-                   . ' — ' . $this->codir->date->locale('fr')->translatedFormat('d F Y'),
+            subject: '[DCUS] Convocation CODIR — '.$this->codir->objet
+                   .' — '.$this->codir->date->locale('fr')->translatedFormat('d F Y'),
         );
     }
 

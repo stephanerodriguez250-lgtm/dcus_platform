@@ -16,49 +16,49 @@ class Decision extends Model
     ];
 
     protected $casts = [
-        'echeance'    => 'date',
-        'note_date'   => 'date',
+        'echeance' => 'date',
+        'note_date' => 'date',
         'progression' => 'integer',
     ];
 
     public static array $statuts = [
         'assignee' => 'Assignée',
         'en_cours' => 'En cours',
-        'validee'  => 'Validée',
+        'validee' => 'Validée',
         'cloturee' => 'Clôturée',
-        'annulee'  => 'Annulée',
+        'annulee' => 'Annulée',
     ];
 
     public static array $statutColors = [
         'assignee' => 'secondary',
         'en_cours' => 'warning',
-        'validee'  => 'info',
+        'validee' => 'info',
         'cloturee' => 'success',
-        'annulee'  => 'danger',
+        'annulee' => 'danger',
     ];
 
     // CORRECTION 1 : 'annulee' => 0 était sorti du tableau par erreur
     public static array $statutProgression = [
         'assignee' => 0,
         'en_cours' => 50,
-        'validee'  => 80,
+        'validee' => 80,
         'cloturee' => 100,
-        'annulee'  => 0,
+        'annulee' => 0,
     ];
 
     public static array $sourceTypeLabels = [
-        'codir_interne'      => 'CODIR Interne',
-        'codir_externe'      => 'CODIR Externe',
-        'reunion_interne'    => 'Réunion Interne',
-        'reunion_externe'    => 'Réunion Externe',
+        'codir_interne' => 'CODIR Interne',
+        'codir_externe' => 'CODIR Externe',
+        'reunion_interne' => 'Réunion Interne',
+        'reunion_externe' => 'Réunion Externe',
         'note_ministerielle' => 'Note Ministérielle',
     ];
 
     public static array $sourceTypeColors = [
-        'codir_interne'      => '1a3a5c',
-        'codir_externe'      => '0d6efd',
-        'reunion_interne'    => '6f42c1',
-        'reunion_externe'    => '0dcaf0',
+        'codir_interne' => '1a3a5c',
+        'codir_externe' => '0d6efd',
+        'reunion_interne' => '6f42c1',
+        'reunion_externe' => '0dcaf0',
         'note_ministerielle' => 'ffc107',
     ];
 
@@ -76,9 +76,16 @@ class Decision extends Model
 
     public function getProgressionColorAttribute(): string
     {
-        if ($this->progression >= 100) return 'success';
-        if ($this->progression >= 60)  return 'info';
-        if ($this->progression >= 30)  return 'warning';
+        if ($this->progression >= 100) {
+            return 'success';
+        }
+        if ($this->progression >= 60) {
+            return 'info';
+        }
+        if ($this->progression >= 30) {
+            return 'warning';
+        }
+
         return 'danger';
     }
 
@@ -99,15 +106,16 @@ class Decision extends Model
                 $this->note_numero,
                 $this->note_date?->format('d/m/Y'),
             ]);
+
             return implode(' – ', $parts) ?: 'Note ministérielle';
         }
 
         if ($this->codir) {
-            return ($this->codir->objet ?? 'CODIR') . ' – ' . $this->codir->date->format('d/m/Y');
+            return ($this->codir->objet ?? 'CODIR').' – '.$this->codir->date->format('d/m/Y');
         }
 
         if ($this->reunion) {
-            return ($this->reunion->titre ?? 'Réunion') . ' – ' . $this->reunion->date->format('d/m/Y');
+            return ($this->reunion->titre ?? 'Réunion').' – '.$this->reunion->date->format('d/m/Y');
         }
 
         return '—';
@@ -117,7 +125,7 @@ class Decision extends Model
     {
         return $this->echeance
             && $this->echeance->isPast()
-            && !in_array($this->statut, ['cloturee', 'annulee']);
+            && ! in_array($this->statut, ['cloturee', 'annulee']);
     }
 
     // ── Relations ───────────────────────────────────────────────────
@@ -141,6 +149,6 @@ class Decision extends Model
     public function historiques()
     {
         return $this->hasMany(DecisionHistorique::class)
-                    ->orderByDesc('date_modification');
+            ->orderByDesc('date_modification');
     }
 }

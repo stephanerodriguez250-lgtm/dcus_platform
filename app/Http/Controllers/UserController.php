@@ -15,10 +15,10 @@ class UserController extends Controller
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('nom', 'like', '%' . $request->search . '%')
-                  ->orWhere('prenom', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%')
-                  ->orWhere('poste', 'like', '%' . $request->search . '%');
+                $q->where('nom', 'like', '%'.$request->search.'%')
+                    ->orWhere('prenom', 'like', '%'.$request->search.'%')
+                    ->orWhere('email', 'like', '%'.$request->search.'%')
+                    ->orWhere('poste', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -39,17 +39,17 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nom'       => 'required|string|max:100',
-            'prenom'    => 'required|string|max:100',
-            'email'     => 'required|email|unique:users,email',
-            'password'  => 'required|min:8|confirmed',
-            'role'      => 'required|in:admin,secretaire,agent',
-            'poste'     => 'nullable|string|max:150',
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8|confirmed',
+            'role' => 'required|in:admin,secretaire,agent',
+            'poste' => 'nullable|string|max:150',
             'telephone' => 'nullable|string|max:20',
         ]);
 
         $data['password'] = Hash::make($data['password']);
-        $data['actif']    = true;
+        $data['actif'] = true;
 
         User::create($data);
 
@@ -65,13 +65,13 @@ class UserController extends Controller
     public function update(Request $request, User $utilisateur)
     {
         $data = $request->validate([
-            'nom'       => 'required|string|max:100',
-            'prenom'    => 'required|string|max:100',
-            'email'     => ['required', 'email', Rule::unique('users')->ignore($utilisateur->id)],
-            'role'      => 'required|in:admin,secretaire,agent',
-            'poste'     => 'nullable|string|max:150',
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'email' => ['required', 'email', Rule::unique('users')->ignore($utilisateur->id)],
+            'role' => 'required|in:admin,secretaire,agent',
+            'poste' => 'nullable|string|max:150',
             'telephone' => 'nullable|string|max:20',
-            'password'  => 'nullable|min:8|confirmed',
+            'password' => 'nullable|min:8|confirmed',
         ]);
 
         if (empty($data['password'])) {
@@ -92,6 +92,7 @@ class UserController extends Controller
             return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
         }
         $utilisateur->delete();
+
         return redirect()->route('utilisateurs.index')
             ->with('success', 'Utilisateur supprimé.');
     }
@@ -102,8 +103,9 @@ class UserController extends Controller
         if ($utilisateur->id === auth()->id()) {
             return back()->with('error', 'Vous ne pouvez pas désactiver votre propre compte.');
         }
-        $utilisateur->update(['actif' => !$utilisateur->actif]);
+        $utilisateur->update(['actif' => ! $utilisateur->actif]);
         $msg = $utilisateur->actif ? 'Compte activé.' : 'Compte désactivé.';
+
         return back()->with('success', $msg);
     }
 }

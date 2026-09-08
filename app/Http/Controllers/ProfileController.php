@@ -18,8 +18,8 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $data = $request->validate([
-            'nom'       => 'required|string|max:100',
-            'prenom'    => 'required|string|max:100',
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
             'telephone' => 'nullable|string|max:20',
         ]);
 
@@ -27,10 +27,10 @@ class ProfileController extends Controller
         if ($request->filled('password')) {
             $request->validate([
                 'current_password' => 'required',
-                'password'         => 'required|min:8|confirmed',
+                'password' => 'required|min:8|confirmed',
             ]);
 
-            if (!Hash::check($request->current_password, $user->password)) {
+            if (! Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors(['current_password' => 'Mot de passe actuel incorrect.']);
             }
 

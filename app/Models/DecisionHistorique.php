@@ -16,7 +16,7 @@ class DecisionHistorique extends Model
 
     protected $casts = [
         'date_modification' => 'datetime',
-        'progression'       => 'integer',
+        'progression' => 'integer',
     ];
 
     public function decision()

@@ -12,14 +12,14 @@ class DashboardController extends Controller
     public function index()
     {
         $stats = [
-            'reunions_total'      => Reunion::count(),
+            'reunions_total' => Reunion::count(),
             'reunions_planifiees' => Reunion::where('statut', 'planifiee')->count(),
-            'reunions_terminees'  => Reunion::where('statut', 'terminee')->count(),
-            'accords_total'       => Accord::count(),
-            'accords_en_cours'    => Accord::whereIn('statut', ['identifie', 'en_negotiation', 'en_execution'])->count(),
-            'accords_signes'      => Accord::where('statut', 'signe')->count(),
-            'accords_clotures'    => Accord::where('statut', 'cloture')->count(),
-            'users_total'         => User::where('actif', true)->count(),
+            'reunions_terminees' => Reunion::where('statut', 'terminee')->count(),
+            'accords_total' => Accord::count(),
+            'accords_en_cours' => Accord::whereIn('statut', ['identifie', 'en_negotiation', 'en_execution'])->count(),
+            'accords_signes' => Accord::where('statut', 'signe')->count(),
+            'accords_clotures' => Accord::where('statut', 'cloture')->count(),
+            'users_total' => User::where('actif', true)->count(),
         ];
 
         $accords_par_statut = [];

@@ -12,24 +12,24 @@ class DatabaseSeeder extends Seeder
     {
         // Directrice (Admin)
         User::create([
-            'nom'      => 'AGOSSOU',
-            'prenom'   => 'Marie',
-            'email'    => 'directrice@dcus.bj',
+            'nom' => 'AGOSSOU',
+            'prenom' => 'Marie',
+            'email' => 'directrice@dcus.bj',
             'password' => Hash::make('Dcus2024!'),
-            'role'     => 'admin',
-            'poste'    => 'Directrice DCUS',
-            'actif'    => true,
+            'role' => 'admin',
+            'poste' => 'Directrice DCUS',
+            'actif' => true,
         ]);
 
         // Secrétaire
         User::create([
-            'nom'      => 'HOUNTON',
-            'prenom'   => 'Isabelle',
-            'email'    => 'secretaire@dcus.bj',
+            'nom' => 'HOUNTON',
+            'prenom' => 'Isabelle',
+            'email' => 'secretaire@dcus.bj',
             'password' => Hash::make('Dcus2024!'),
-            'role'     => 'secretaire',
-            'poste'    => 'Secrétaire de Direction',
-            'actif'    => true,
+            'role' => 'secretaire',
+            'poste' => 'Secrétaire de Direction',
+            'actif' => true,
         ]);
 
         // Agents
@@ -42,8 +42,8 @@ class DatabaseSeeder extends Seeder
         foreach ($agents as $agent) {
             User::create(array_merge($agent, [
                 'password' => Hash::make('Dcus2024!'),
-                'role'     => 'agent',
-                'actif'    => true,
+                'role' => 'agent',
+                'actif' => true,
             ]));
         }
     }
