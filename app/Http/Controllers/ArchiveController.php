@@ -99,4 +99,89 @@ class ArchiveController extends Controller
 
         return $query->exists();
     }
+
+    public function createFichier(Request $request)
+    {
+        $dossier = null;
+        if ($request->query('dossier')) {
+            $dossier = ArchiveFolder::findOrFail($request->query('dossier'));
+            $this->authorize('view', $dossier);
+        }
+
+        return view('archives.fichiers.create', compact('dossier'));
+    }
+
+    public function storeFichier(Request $request)
+    {
+        $validated = $request->validate([
+            'dossier_id' => 'nullable|exists:archive_folders,id',
+            'intitule' => 'required|string|max:255',
+            'numero' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'fichier' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
+        ]);
+
+        $dossier = null;
+        if ($validated['dossier_id'] ?? null) {
+            $dossier = ArchiveFolder::findOrFail($validated['dossier_id']);
+            $this->authorize('view', $dossier);
+        }
+
+        $file = $request->file('fichier');
+        $path = $file->store('archives/fichiers', 'public');
+
+        ArchiveFichier::create([
+            'user_id' => Auth::id(),
+            'folder_id' => $dossier?->id,
+            'intitule' => $validated['intitule'],
+            'numero' => $validated['numero'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'nom_fichier' => $file->getClientOriginalName(),
+            'chemin_fichier' => $path,
+            'type_fichier' => $file->getClientOriginalExtension(),
+            'taille' => $file->getSize(),
+        ]);
+
+        return redirect()->route('archives.index', $dossier ? ['dossier' => $dossier->id] : [])
+            ->with('success', 'Fichier ajouté.');
+    }
+
+    public function updateFichier(Request $request, ArchiveFichier $fichier)
+    {
+        $this->authorize('update', $fichier);
+
+        $validated = $request->validate([
+            'intitule' => 'required|string|max:255',
+            'numero' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $fichier->update($validated);
+
+        return redirect()->route('archives.index', $fichier->folder_id ? ['dossier' => $fichier->folder_id] : [])
+            ->with('success', 'Fichier modifié.');
+    }
+
+    public function destroyFichier(ArchiveFichier $fichier)
+    {
+        $this->authorize('delete', $fichier);
+
+        Storage::disk('public')->delete($fichier->chemin_fichier);
+        $folderId = $fichier->folder_id;
+        $fichier->delete();
+
+        return redirect()->route('archives.index', $folderId ? ['dossier' => $folderId] : [])
+            ->with('success', 'Fichier supprimé.');
+    }
+
+    public function downloadFichier(ArchiveFichier $fichier)
+    {
+        $this->authorize('view', $fichier);
+
+        if (! Storage::disk('public')->exists($fichier->chemin_fichier)) {
+            return back()->with('error', 'Fichier introuvable.');
+        }
+
+        return Storage::disk('public')->download($fichier->chemin_fichier, $fichier->nom_fichier);
+    }
 }

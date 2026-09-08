@@ -104,9 +104,16 @@
                         <td>{{ $fichier->taille_formatee }}</td>
                         <td>{{ $fichier->created_at->format('d/m/Y H:i') }}</td>
                         <td class="text-end pe-4">
-                            <a href="{{ route('archives.fichiers.download', $fichier) }}" class="btn btn-sm btn-outline-primary" title="Télécharger">
+                            <a href="{{ route('archives.fichiers.download', $fichier) }}" class="btn btn-sm btn-outline-primary me-1" title="Télécharger">
                                 <i class="bi bi-download"></i>
                             </a>
+                            <form method="POST" action="{{ route('archives.fichiers.destroy', $fichier) }}"
+                                  class="d-inline" onsubmit="return confirm('Supprimer ce fichier ?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @empty
