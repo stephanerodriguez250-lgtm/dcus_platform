@@ -35,6 +35,11 @@ class ArchiveFichier extends Model
         return $this->belongsTo(ArchiveFolder::class, 'folder_id');
     }
 
+    public function partageOrigine()
+    {
+        return $this->hasOne(ArchivePartage::class, 'fichier_copie_id');
+    }
+
     public function getTailleFormateeAttribute(): string
     {
         $bytes = $this->taille ?? 0;
