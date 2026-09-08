@@ -1,0 +1,146 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Language Lines
+    |--------------------------------------------------------------------------
+    */
+
+    'accepted' => 'Le champ :attribute doit être accepté.',
+    'accepted_if' => 'Le champ :attribute doit être accepté lorsque :other vaut :value.',
+    'active_url' => 'Le champ :attribute n\'est pas une URL valide.',
+    'after' => 'Le champ :attribute doit être une date postérieure à :date.',
+    'after_or_equal' => 'Le champ :attribute doit être une date postérieure ou égale à :date.',
+    'alpha' => 'Le champ :attribute ne doit contenir que des lettres.',
+    'alpha_dash' => 'Le champ :attribute ne doit contenir que des lettres, des chiffres, des tirets et des underscores.',
+    'alpha_num' => 'Le champ :attribute ne doit contenir que des lettres et des chiffres.',
+    'array' => 'Le champ :attribute doit être un tableau.',
+    'before' => 'Le champ :attribute doit être une date antérieure à :date.',
+    'before_or_equal' => 'Le champ :attribute doit être une date antérieure ou égale à :date.',
+    'between' => [
+        'array' => 'Le champ :attribute doit contenir entre :min et :max éléments.',
+        'file' => 'Le champ :attribute doit être compris entre :min et :max kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être compris entre :min et :max.',
+        'string' => 'Le champ :attribute doit contenir entre :min et :max caractères.',
+    ],
+    'boolean' => 'Le champ :attribute doit être vrai ou faux.',
+    'confirmed' => 'La confirmation du champ :attribute ne correspond pas.',
+    'current_password' => 'Le mot de passe est incorrect.',
+    'date' => 'Le champ :attribute n\'est pas une date valide.',
+    'date_equals' => 'Le champ :attribute doit être une date égale à :date.',
+    'date_format' => 'Le champ :attribute ne correspond pas au format :format.',
+    'different' => 'Les champs :attribute et :other doivent être différents.',
+    'digits' => 'Le champ :attribute doit contenir :digits chiffres.',
+    'digits_between' => 'Le champ :attribute doit contenir entre :min et :max chiffres.',
+    'email' => 'Le champ :attribute doit être une adresse email valide.',
+    'ends_with' => 'Le champ :attribute doit se terminer par l\'une des valeurs suivantes : :values.',
+    'exists' => 'La valeur sélectionnée pour :attribute est invalide.',
+    'file' => 'Le champ :attribute doit être un fichier.',
+    'filled' => 'Le champ :attribute est obligatoire.',
+    'gt' => [
+        'array' => 'Le champ :attribute doit contenir plus de :value éléments.',
+        'file' => 'Le champ :attribute doit être supérieur à :value kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être supérieur à :value.',
+        'string' => 'Le champ :attribute doit contenir plus de :value caractères.',
+    ],
+    'gte' => [
+        'array' => 'Le champ :attribute doit contenir :value éléments ou plus.',
+        'file' => 'Le champ :attribute doit être supérieur ou égal à :value kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être supérieur ou égal à :value.',
+        'string' => 'Le champ :attribute doit contenir au moins :value caractères.',
+    ],
+    'image' => 'Le champ :attribute doit être une image.',
+    'in' => 'La valeur sélectionnée pour :attribute est invalide.',
+    'in_array' => 'Le champ :attribute n\'existe pas dans :other.',
+    'integer' => 'Le champ :attribute doit être un entier.',
+    'ip' => 'Le champ :attribute doit être une adresse IP valide.',
+    'ipv4' => 'Le champ :attribute doit être une adresse IPv4 valide.',
+    'ipv6' => 'Le champ :attribute doit être une adresse IPv6 valide.',
+    'json' => 'Le champ :attribute doit être une chaîne JSON valide.',
+    'lt' => [
+        'array' => 'Le champ :attribute doit contenir moins de :value éléments.',
+        'file' => 'Le champ :attribute doit être inférieur à :value kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être inférieur à :value.',
+        'string' => 'Le champ :attribute doit contenir moins de :value caractères.',
+    ],
+    'lte' => [
+        'array' => 'Le champ :attribute ne doit pas contenir plus de :value éléments.',
+        'file' => 'Le champ :attribute doit être inférieur ou égal à :value kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être inférieur ou égal à :value.',
+        'string' => 'Le champ :attribute doit contenir au maximum :value caractères.',
+    ],
+    'max' => [
+        'array' => 'Le champ :attribute ne peut pas contenir plus de :max éléments.',
+        'file' => 'Le champ :attribute ne peut pas être supérieur à :max kilo-octets.',
+        'numeric' => 'Le champ :attribute ne peut pas être supérieur à :max.',
+        'string' => 'Le champ :attribute ne peut pas contenir plus de :max caractères.',
+    ],
+    'mimes' => 'Le champ :attribute doit être un fichier de type : :values.',
+    'min' => [
+        'array' => 'Le champ :attribute doit contenir au moins :min éléments.',
+        'file' => 'Le champ :attribute doit être supérieur ou égal à :min kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être supérieur ou égal à :min.',
+        'string' => 'Le champ :attribute doit contenir au moins :min caractères.',
+    ],
+    'not_in' => 'La valeur sélectionnée pour :attribute est invalide.',
+    'numeric' => 'Le champ :attribute doit être un nombre.',
+    'nullable' => 'Le champ :attribute est facultatif.',
+    'present' => 'Le champ :attribute doit être présent.',
+    'regex' => 'Le format du champ :attribute est invalide.',
+    'required' => 'Le champ :attribute est obligatoire.',
+    'required_if' => 'Le champ :attribute est obligatoire lorsque :other vaut :value.',
+    'required_unless' => 'Le champ :attribute est obligatoire sauf si :other est dans :values.',
+    'required_with' => 'Le champ :attribute est obligatoire lorsque :values est présent.',
+    'required_with_all' => 'Le champ :attribute est obligatoire lorsque :values sont présents.',
+    'required_without' => 'Le champ :attribute est obligatoire lorsque :values n\'est pas présent.',
+    'required_without_all' => 'Le champ :attribute est obligatoire lorsqu\'aucun de :values n\'est présent.',
+    'same' => 'Les champs :attribute et :other doivent être identiques.',
+    'size' => [
+        'array' => 'Le champ :attribute doit contenir :size éléments.',
+        'file' => 'Le champ :attribute doit être de :size kilo-octets.',
+        'numeric' => 'Le champ :attribute doit être de :size.',
+        'string' => 'Le champ :attribute doit contenir :size caractères.',
+    ],
+    'starts_with' => 'Le champ :attribute doit commencer par l\'une des valeurs suivantes : :values.',
+    'string' => 'Le champ :attribute doit être une chaîne de caractères.',
+    'unique' => 'Cette valeur pour :attribute est déjà utilisée.',
+    'uploaded' => 'Le téléversement du champ :attribute a échoué.',
+    'url' => 'Le format du champ :attribute est invalide.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Attributes
+    |--------------------------------------------------------------------------
+    */
+
+    'attributes' => [
+        'nom' => 'nom',
+        'prenom' => 'prénom',
+        'email' => 'email',
+        'password' => 'mot de passe',
+        'password_confirmation' => 'confirmation du mot de passe',
+        'role' => 'rôle',
+        'service' => 'service',
+        'poste' => 'poste',
+        'telephone' => 'téléphone',
+        'token' => 'jeton',
+        'titre' => 'titre',
+        'objet' => 'objet',
+        'date' => 'date',
+        'heure' => 'heure',
+        'lieu' => 'lieu',
+        'statut' => 'statut',
+        'commentaire' => 'commentaire',
+        'echeance' => 'échéance',
+        'responsable' => 'responsable',
+        'intitule' => 'intitulé',
+        'progression' => 'progression',
+        'numero' => 'numéro',
+        'description' => 'description',
+        'fichier' => 'fichier',
+        'dossier_id' => 'dossier',
+    ],
+
+];
