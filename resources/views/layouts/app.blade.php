@@ -141,6 +141,9 @@
         <a href="{{ route('accords.index') }}" class="nav-link {{ request()->routeIs('accords.*') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-text"></i> Accords
         </a>
+        <a href="{{ route('archives.index') }}" class="nav-link {{ request()->routeIs('archives.*') ? 'active' : '' }}">
+            <i class="bi bi-folder"></i> Archives
+        </a>
     </nav>
 
     @if(auth()->user()->isAdmin())

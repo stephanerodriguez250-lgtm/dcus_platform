@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccordController;
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CodirController;
 use App\Http\Controllers\DashboardController;
@@ -69,6 +70,28 @@ Route::middleware('auth')->group(function () {
     Route::resource('accords', AccordController::class);
     Route::post('accords/{accord}/statut', [AccordController::class, 'updateStatut'])
         ->name('accords.statut');
+
+    // Archives (espace privé par utilisateur)
+    Route::get('archives/fichiers/create', [ArchiveController::class, 'createFichier'])
+        ->name('archives.fichiers.create');
+    Route::post('archives/fichiers', [ArchiveController::class, 'storeFichier'])
+        ->name('archives.fichiers.store');
+    Route::patch('archives/fichiers/{fichier}', [ArchiveController::class, 'updateFichier'])
+        ->name('archives.fichiers.update');
+    Route::delete('archives/fichiers/{fichier}', [ArchiveController::class, 'destroyFichier'])
+        ->name('archives.fichiers.destroy');
+    Route::get('archives/fichiers/{fichier}/download', [ArchiveController::class, 'downloadFichier'])
+        ->name('archives.fichiers.download');
+
+    Route::post('archives/dossiers', [ArchiveController::class, 'storeDossier'])
+        ->name('archives.dossiers.store');
+    Route::patch('archives/dossiers/{dossier}', [ArchiveController::class, 'updateDossier'])
+        ->name('archives.dossiers.update');
+    Route::delete('archives/dossiers/{dossier}', [ArchiveController::class, 'destroyDossier'])
+        ->name('archives.dossiers.destroy');
+
+    Route::get('archives/{dossier?}', [ArchiveController::class, 'index'])
+        ->name('archives.index');
 
     // Exports
     Route::prefix('exports')->name('exports.')->group(function () {
