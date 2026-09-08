@@ -13,6 +13,25 @@ use Illuminate\Support\Str;
 
 class ArchivePartageController extends Controller
 {
+    public function index()
+    {
+        $partages = ArchivePartage::where('partage_par', Auth::id())
+            ->with(['fichierOriginal', 'fichierCopie', 'destinataire'])
+            ->latest()
+            ->get();
+
+        return view('archives.partages.index', compact('partages'));
+    }
+
+    public function destroy(ArchivePartage $partage)
+    {
+        $this->authorize('delete', $partage);
+
+        $partage->delete();
+
+        return redirect()->route('archives.partages.index')->with('success', 'Partage révoqué.');
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

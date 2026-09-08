@@ -26,6 +26,9 @@
         </nav>
     </div>
     <div class="d-flex gap-2">
+        <a href="{{ route('archives.partages.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-share me-2"></i>Partages effectués
+        </a>
         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nouveauDossierModal">
             <i class="bi bi-folder-plus me-2"></i>Nouveau dossier
         </button>
