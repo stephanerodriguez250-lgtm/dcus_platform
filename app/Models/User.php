@@ -6,6 +6,7 @@ use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 class User extends Authenticatable
 {
@@ -70,6 +71,14 @@ class User extends Authenticatable
     public function canManage(): bool
     {
         return in_array($this->role, ['admin', 'secretaire']);
+    }
+
+    /**
+     * Tous les utilisateurs actifs, à l'exception de celui dont l'id est fourni (ex: l'auteur d'une action).
+     */
+    public static function actifsSauf(?int $userId): Collection
+    {
+        return static::where('actif', true)->where('id', '!=', $userId)->get();
     }
 
     public function sendPasswordResetNotification($token): void

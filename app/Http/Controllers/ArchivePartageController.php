@@ -85,7 +85,10 @@ class ArchivePartageController extends Controller
                 },
             ],
             'retour_dossier_id' => 'nullable|exists:archive_folders,id',
+            'note' => 'nullable|string|max:1000',
         ]);
+
+        $note = $validated['note'] ?? null;
 
         $fichierIds = $validated['fichier_ids'] ?? [];
         $dossierIds = $validated['dossier_ids'] ?? [];
@@ -109,22 +112,25 @@ class ArchivePartageController extends Controller
 
         foreach ($fichiers as $fichier) {
             foreach ($destinataires as $destinataire) {
-                $copie = $this->copierFichierPour($fichier, $destinataire);
+                $dossierCollecteur = $this->dossierPartagesRecusPour($destinataire);
+                $copie = $this->copierFichierPour($fichier, $destinataire, $dossierCollecteur->id);
 
                 ArchivePartage::create([
                     'fichier_original_id' => $fichier->id,
                     'fichier_copie_id' => $copie->id,
                     'partage_par' => $expediteur->id,
                     'destinataire_id' => $destinataire->id,
+                    'note' => $note,
                 ]);
 
-                $destinataire->notify(new FichierPartageNotification($fichier, $expediteur, $copie));
+                $destinataire->notify(new FichierPartageNotification($fichier, $expediteur, $copie, $note));
             }
         }
 
         foreach ($dossiers as $dossier) {
             foreach ($destinataires as $destinataire) {
-                $copieDossier = $this->copierDossierPour($dossier, $destinataire);
+                $dossierCollecteur = $this->dossierPartagesRecusPour($destinataire);
+                $copieDossier = $this->copierDossierPour($dossier, $destinataire, $dossierCollecteur->id, verifierDoublon: true);
                 $zipPath = $this->genererZipDossier($copieDossier);
 
                 $partageDossier = ArchiveDossierPartage::create([
@@ -133,9 +139,10 @@ class ArchivePartageController extends Controller
                     'zip_path' => $zipPath,
                     'partage_par' => $expediteur->id,
                     'destinataire_id' => $destinataire->id,
+                    'note' => $note,
                 ]);
 
-                $destinataire->notify(new DossierPartageNotification($dossier, $expediteur, $partageDossier));
+                $destinataire->notify(new DossierPartageNotification($dossier, $expediteur, $partageDossier, $note));
             }
         }
 
@@ -163,10 +170,10 @@ class ArchivePartageController extends Controller
         ]);
     }
 
-    private function copierDossierPour(ArchiveFolder $dossier, User $destinataire, ?int $parentIdCopie = null): ArchiveFolder
+    private function copierDossierPour(ArchiveFolder $dossier, User $destinataire, int $parentIdCopie, bool $verifierDoublon = false): ArchiveFolder
     {
-        $nom = $parentIdCopie === null
-            ? $this->nomDossierDisponiblePour($dossier->nom, $destinataire->id)
+        $nom = $verifierDoublon
+            ? $this->nomDossierDisponiblePour($dossier->nom, $destinataire->id, $parentIdCopie)
             : $dossier->nom;
 
         $copieDossier = ArchiveFolder::create([
@@ -186,17 +193,26 @@ class ArchivePartageController extends Controller
         return $copieDossier;
     }
 
-    private function nomDossierDisponiblePour(string $nomSouhaite, int $destinataireId): string
+    private function nomDossierDisponiblePour(string $nomSouhaite, int $destinataireId, int $parentId): string
     {
         $nom = $nomSouhaite;
         $suffixe = 2;
 
-        while (ArchiveFolder::where('user_id', $destinataireId)->whereNull('parent_id')->where('nom', $nom)->exists()) {
+        while (ArchiveFolder::where('user_id', $destinataireId)->where('parent_id', $parentId)->where('nom', $nom)->exists()) {
             $nom = $nomSouhaite.' ('.$suffixe.')';
             $suffixe++;
         }
 
         return $nom;
+    }
+
+    private function dossierPartagesRecusPour(User $destinataire): ArchiveFolder
+    {
+        return ArchiveFolder::firstOrCreate([
+            'user_id' => $destinataire->id,
+            'parent_id' => null,
+            'nom' => 'Partages reçus',
+        ]);
     }
 
     private function genererZipDossier(ArchiveFolder $dossierCopie): string

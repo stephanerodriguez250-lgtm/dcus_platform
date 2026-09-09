@@ -38,7 +38,9 @@ class ArchiveDossierPartageTest extends TestCase
 
         $copie = ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Conventions')->first();
         $this->assertNotNull($copie);
-        $this->assertNull($copie->parent_id);
+        $dossierCollecteur = ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Partages reçus')->first();
+        $this->assertNotNull($dossierCollecteur);
+        $this->assertSame($dossierCollecteur->id, $copie->parent_id);
         $this->assertSame(1, $copie->fichiers()->count());
 
         $partage = ArchiveDossierPartage::first();
@@ -75,23 +77,29 @@ class ArchiveDossierPartageTest extends TestCase
         $this->assertSame(1, $copieEnfant->fichiers()->count());
     }
 
-    public function test_name_collision_at_recipients_root_is_auto_renamed(): void
+    public function test_name_collision_inside_the_partages_recus_folder_is_auto_renamed(): void
     {
         Notification::fake();
 
         $expediteur = User::factory()->create();
         $destinataire = User::factory()->create();
-        ArchiveFolder::factory()->create(['user_id' => $destinataire->id, 'nom' => 'Conventions']);
         $dossier = ArchiveFolder::factory()->create(['user_id' => $expediteur->id, 'nom' => 'Conventions']);
 
+        // Premier partage : crée "Partages reçus" > "Conventions"
+        $this->actingAs($expediteur)->post('/archives/partages', [
+            'dossier_ids' => [$dossier->id],
+            'destinataire_ids' => [$destinataire->id],
+        ]);
+        // Deuxième partage du même dossier : collision de nom dans le même dossier collecteur
         $this->actingAs($expediteur)->post('/archives/partages', [
             'dossier_ids' => [$dossier->id],
             'destinataire_ids' => [$destinataire->id],
         ]);
 
+        $dossierCollecteur = ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Partages reçus')->firstOrFail();
         $this->assertSame(2, ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'like', 'Conventions%')->count());
         $this->assertDatabaseHas('archive_folders', [
-            'user_id' => $destinataire->id, 'parent_id' => null, 'nom' => 'Conventions (2)',
+            'user_id' => $destinataire->id, 'parent_id' => $dossierCollecteur->id, 'nom' => 'Conventions (2)',
         ]);
     }
 
@@ -195,6 +203,31 @@ class ArchiveDossierPartageTest extends TestCase
 
         $response->assertForbidden();
         $this->assertDatabaseHas('archive_dossier_partages', ['id' => $partage->id]);
+    }
+
+    public function test_an_optional_note_is_stored_on_the_folder_share_and_passed_to_the_notification(): void
+    {
+        Notification::fake();
+        Storage::fake('public');
+
+        $expediteur = User::factory()->create();
+        $destinataire = User::factory()->create();
+        $dossier = ArchiveFolder::factory()->create(['user_id' => $expediteur->id]);
+
+        $this->actingAs($expediteur)->post('/archives/partages', [
+            'dossier_ids' => [$dossier->id],
+            'destinataire_ids' => [$destinataire->id],
+            'note' => 'Voir la clause 4.',
+        ]);
+
+        $this->assertDatabaseHas('archive_dossier_partages', [
+            'dossier_original_id' => $dossier->id,
+            'note' => 'Voir la clause 4.',
+        ]);
+
+        Notification::assertSentTo($destinataire, function (DossierPartageNotification $notification) {
+            return $notification->note === 'Voir la clause 4.';
+        });
     }
 
     public function test_can_share_files_and_folders_together_in_one_request(): void

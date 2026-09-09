@@ -10,11 +10,11 @@
         <h5 class="mb-1 fw-bold text-dark">Archives</h5>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 small">
-                <li class="breadcrumb-item">
+                <li class="breadcrumb-item drop-cible" data-dossier-id="">
                     <a href="{{ route('archives.index') }}"><i class="bi bi-folder2-open me-1"></i>Racine</a>
                 </li>
                 @foreach($filAriane as $etape)
-                <li class="breadcrumb-item {{ $loop->last ? 'active' : '' }}">
+                <li class="breadcrumb-item {{ $loop->last ? 'active' : 'drop-cible' }}" data-dossier-id="{{ $loop->last ? '' : $etape->id }}">
                     @if($loop->last)
                         {{ $etape->nom }}
                     @else
@@ -58,7 +58,7 @@
                 </thead>
                 <tbody>
                     @forelse($sousDossiers as $sousDossier)
-                    <tr>
+                    <tr class="drop-cible" draggable="true" data-type="dossier" data-id="{{ $sousDossier->id }}" data-dossier-id="{{ $sousDossier->id }}">
                         <td class="ps-4">
                             <input type="checkbox" name="dossier_ids[]" value="{{ $sousDossier->id }}" form="partage-form">
                         </td>
@@ -107,7 +107,7 @@
                     @endforelse
 
                     @forelse($fichiers as $fichier)
-                    <tr>
+                    <tr draggable="true" data-type="fichier" data-id="{{ $fichier->id }}">
                         <td class="ps-4">
                             <input type="checkbox" name="fichier_ids[]" value="{{ $fichier->id }}" form="partage-form">
                         </td>
@@ -212,6 +212,10 @@
                 @empty
                 <p class="text-muted small mb-0">Aucun autre utilisateur disponible.</p>
                 @endforelse
+
+                <label for="noteModal" class="form-label fw-semibold mt-3">Note (optionnelle)</label>
+                <textarea name="note" id="noteModal" form="partage-form" class="form-control" rows="3"
+                          placeholder="Ce message sera repris dans l'e-mail envoyé au(x) destinataire(s).">{{ old('note') }}</textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -221,3 +225,70 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    tr[draggable="true"] { cursor: grab; }
+    tr.drag-en-cours { opacity: 0.4; }
+    tr.drop-cible.survole, li.drop-cible.survole a, li.drop-cible.survole { background-color: var(--bs-primary-bg-subtle, #cfe2ff) !important; }
+    li.breadcrumb-item.drop-cible { border-radius: 4px; transition: background-color 0.15s; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    let elementDeplace = null;
+
+    document.querySelectorAll('tr[draggable="true"]').forEach(function (ligne) {
+        ligne.addEventListener('dragstart', function (e) {
+            elementDeplace = { type: ligne.dataset.type, id: ligne.dataset.id };
+            ligne.classList.add('drag-en-cours');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        ligne.addEventListener('dragend', function () {
+            ligne.classList.remove('drag-en-cours');
+            elementDeplace = null;
+        });
+    });
+
+    document.querySelectorAll('.drop-cible').forEach(function (cible) {
+        cible.addEventListener('dragover', function (e) {
+            if (!elementDeplace) return;
+            if (elementDeplace.type === 'dossier' && String(elementDeplace.id) === String(cible.dataset.dossierId)) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            cible.classList.add('survole');
+        });
+        cible.addEventListener('dragleave', function () {
+            cible.classList.remove('survole');
+        });
+        cible.addEventListener('drop', function (e) {
+            e.preventDefault();
+            cible.classList.remove('survole');
+            if (!elementDeplace) return;
+            if (elementDeplace.type === 'dossier' && String(elementDeplace.id) === String(cible.dataset.dossierId)) return;
+
+            const dossierId = cible.dataset.dossierId || '';
+            const url = elementDeplace.type === 'dossier'
+                ? '/archives/dossiers/' + elementDeplace.id + '/deplacer'
+                : '/archives/fichiers/' + elementDeplace.id + '/deplacer';
+            const champ = elementDeplace.type === 'dossier' ? 'parent_id' : 'dossier_id';
+
+            fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: champ + '=' + encodeURIComponent(dossierId),
+            }).then(function () {
+                window.location.reload();
+            });
+        });
+    });
+});
+</script>
+@endpush

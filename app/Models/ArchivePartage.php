@@ -10,7 +10,7 @@ class ArchivePartage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'fichier_original_id', 'fichier_copie_id', 'partage_par', 'destinataire_id',
+        'fichier_original_id', 'fichier_copie_id', 'partage_par', 'destinataire_id', 'note',
     ];
 
     public function fichierOriginal()

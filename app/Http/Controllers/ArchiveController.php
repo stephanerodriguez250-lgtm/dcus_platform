@@ -92,6 +92,35 @@ class ArchiveController extends Controller
             ->with('success', 'Dossier supprimé.');
     }
 
+    public function deplacerDossier(Request $request, ArchiveFolder $dossier)
+    {
+        $this->authorize('update', $dossier);
+
+        $validated = $request->validate([
+            'parent_id' => 'nullable|exists:archive_folders,id',
+        ]);
+
+        $dossierCible = null;
+        if ($validated['parent_id'] ?? null) {
+            $dossierCible = ArchiveFolder::findOrFail($validated['parent_id']);
+            $this->authorize('view', $dossierCible);
+
+            if ($dossierCible->id === $dossier->id || $dossier->descendantsRecursifs()->contains('id', $dossierCible->id)) {
+                return back()->with('error', 'Impossible de déplacer un dossier dans lui-même ou l\'un de ses sous-dossiers.');
+            }
+        }
+
+        if ($this->nomDejaPris($dossier->nom, $dossierCible?->id, $dossier->id)) {
+            return back()->with('error', 'Un dossier porte déjà ce nom à cet emplacement.');
+        }
+
+        $dossierDepart = $dossier->parent_id;
+        $dossier->update(['parent_id' => $dossierCible?->id]);
+
+        return redirect()->route('archives.index', $dossierDepart ? ['dossier' => $dossierDepart] : [])
+            ->with('success', 'Dossier déplacé.');
+    }
+
     private function nomDejaPris(string $nom, ?int $parentId, ?int $ignorerId = null): bool
     {
         $query = ArchiveFolder::where('user_id', Auth::id())->where('nom', $nom);
@@ -175,6 +204,27 @@ class ArchiveController extends Controller
 
         return redirect()->route('archives.index', $folderId ? ['dossier' => $folderId] : [])
             ->with('success', 'Fichier supprimé.');
+    }
+
+    public function deplacerFichier(Request $request, ArchiveFichier $fichier)
+    {
+        $this->authorize('update', $fichier);
+
+        $validated = $request->validate([
+            'dossier_id' => 'nullable|exists:archive_folders,id',
+        ]);
+
+        $dossierCible = null;
+        if ($validated['dossier_id'] ?? null) {
+            $dossierCible = ArchiveFolder::findOrFail($validated['dossier_id']);
+            $this->authorize('view', $dossierCible);
+        }
+
+        $dossierDepart = $fichier->folder_id;
+        $fichier->update(['folder_id' => $dossierCible?->id]);
+
+        return redirect()->route('archives.index', $dossierDepart ? ['dossier' => $dossierDepart] : [])
+            ->with('success', 'Fichier déplacé.');
     }
 
     public function downloadFichier(ArchiveFichier $fichier)

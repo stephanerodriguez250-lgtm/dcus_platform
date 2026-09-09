@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\ConvocationReunion;
 use App\Models\Reunion;
 use App\Models\User;
+use App\Notifications\ReunionCreeeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -56,6 +57,11 @@ class ReunionController extends Controller
         ]);
         $data['created_by'] = Auth::id();
         $reunion = Reunion::create($data);
+
+        foreach (User::actifsSauf(Auth::id()) as $utilisateur) {
+            $utilisateur->notify(new ReunionCreeeNotification($reunion, Auth::user()));
+        }
+
         // Envoi des convocations à tous les agents actifs
         $envoyes = $this->envoyerConvocations($reunion);
         $message = $envoyes > 0

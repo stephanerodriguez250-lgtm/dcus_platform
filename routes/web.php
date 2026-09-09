@@ -8,6 +8,7 @@ use App\Http\Controllers\CodirController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DecisionController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegistrationController;
@@ -43,6 +44,12 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Notifications
+    Route::post('notifications/tout-lire', [NotificationController::class, 'marquerToutLu'])
+        ->name('notifications.tout-lire');
+    Route::post('notifications/{id}/lire', [NotificationController::class, 'marquerLu'])
+        ->name('notifications.lire');
 
     // Profil
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -92,6 +99,8 @@ Route::middleware('auth')->group(function () {
         ->name('archives.fichiers.download');
     Route::get('archives/fichiers/{fichier}/apercu', [ArchiveController::class, 'apercuFichier'])
         ->name('archives.fichiers.apercu');
+    Route::patch('archives/fichiers/{fichier}/deplacer', [ArchiveController::class, 'deplacerFichier'])
+        ->name('archives.fichiers.deplacer');
 
     Route::post('archives/dossiers', [ArchiveController::class, 'storeDossier'])
         ->name('archives.dossiers.store');
@@ -99,6 +108,8 @@ Route::middleware('auth')->group(function () {
         ->name('archives.dossiers.update');
     Route::delete('archives/dossiers/{dossier}', [ArchiveController::class, 'destroyDossier'])
         ->name('archives.dossiers.destroy');
+    Route::patch('archives/dossiers/{dossier}/deplacer', [ArchiveController::class, 'deplacerDossier'])
+        ->name('archives.dossiers.deplacer');
 
     Route::get('archives/partages', [ArchivePartageController::class, 'index'])
         ->name('archives.partages.index');

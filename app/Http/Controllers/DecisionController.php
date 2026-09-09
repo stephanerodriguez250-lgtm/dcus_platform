@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Decision;
 use App\Models\DecisionHistorique;
+use App\Models\User;
+use App\Notifications\DecisionCreeeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -104,6 +106,10 @@ class DecisionController extends Controller
             'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
+
+        foreach (User::actifsSauf(Auth::id()) as $utilisateur) {
+            $utilisateur->notify(new DecisionCreeeNotification($decision, Auth::user()));
+        }
 
         return back()->with('success', 'Décision enregistrée.');
     }

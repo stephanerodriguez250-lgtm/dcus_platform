@@ -10,7 +10,7 @@ class ArchiveDossierPartage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'dossier_original_id', 'dossier_copie_id', 'zip_path', 'partage_par', 'destinataire_id',
+        'dossier_original_id', 'dossier_copie_id', 'zip_path', 'partage_par', 'destinataire_id', 'note',
     ];
 
     public function dossierOriginal()

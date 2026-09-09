@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Accord;
 use App\Models\AccordHistorique;
 use App\Models\Reunion;
+use App\Models\User;
+use App\Notifications\AccordCreeNotification;
+use App\Notifications\AccordStatutChangeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -75,6 +78,10 @@ class AccordController extends Controller
             'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
+
+        foreach (User::actifsSauf(Auth::id()) as $utilisateur) {
+            $utilisateur->notify(new AccordCreeNotification($accord, Auth::user()));
+        }
 
         return redirect()->route('accords.show', $accord)
             ->with('success', 'Accord enregistré avec succès.');
@@ -153,6 +160,10 @@ class AccordController extends Controller
             'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
+
+        foreach (User::actifsSauf(Auth::id()) as $utilisateur) {
+            $utilisateur->notify(new AccordStatutChangeNotification($accord, Auth::user(), $ancienStatut, $data['statut']));
+        }
 
         return back()->with('success', 'Statut de l\'accord mis à jour.');
     }

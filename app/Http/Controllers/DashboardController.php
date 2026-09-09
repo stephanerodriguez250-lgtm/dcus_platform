@@ -6,11 +6,15 @@ use App\Models\Accord;
 use App\Models\AccordHistorique;
 use App\Models\Reunion;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $notifications = Auth::user()->notifications()->latest()->limit(15)->get();
+        $notificationsNonLues = Auth::user()->unreadNotifications()->count();
+
         $stats = [
             'reunions_total' => Reunion::count(),
             'reunions_planifiees' => Reunion::where('statut', 'planifiee')->count(),
@@ -63,7 +67,9 @@ class DashboardController extends Controller
             'prochaines_reunions',
             'accords_recents',
             'dernieres_activites',
-            'accords_expirants'
+            'accords_expirants',
+            'notifications',
+            'notificationsNonLues'
         ));
     }
 }

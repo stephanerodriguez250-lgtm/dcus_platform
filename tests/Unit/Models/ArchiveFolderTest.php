@@ -61,4 +61,20 @@ class ArchiveFolderTest extends TestCase
         $this->assertTrue($fichiers->contains($fichierRacine));
         $this->assertTrue($fichiers->contains($fichierEnfant));
     }
+
+    public function test_descendants_recursifs_collects_subfolders_from_all_levels(): void
+    {
+        $user = User::factory()->create();
+        $racine = ArchiveFolder::factory()->create(['user_id' => $user->id]);
+        $enfant = ArchiveFolder::factory()->create(['user_id' => $user->id, 'parent_id' => $racine->id]);
+        $petitEnfant = ArchiveFolder::factory()->create(['user_id' => $user->id, 'parent_id' => $enfant->id]);
+        $autreRacine = ArchiveFolder::factory()->create(['user_id' => $user->id]);
+
+        $descendants = $racine->descendantsRecursifs();
+
+        $this->assertCount(2, $descendants);
+        $this->assertTrue($descendants->contains($enfant));
+        $this->assertTrue($descendants->contains($petitEnfant));
+        $this->assertFalse($descendants->contains($autreRacine));
+    }
 }

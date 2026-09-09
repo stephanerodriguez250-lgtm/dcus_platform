@@ -63,4 +63,18 @@ class ArchiveFolder extends Model
 
         return $fichiers;
     }
+
+    /**
+     * Tous les sous-dossiers de ce dossier, à tous les niveaux (pour éviter les déplacements circulaires).
+     */
+    public function descendantsRecursifs(): Collection
+    {
+        $descendants = $this->children;
+
+        foreach ($this->children as $enfant) {
+            $descendants = $descendants->merge($enfant->descendantsRecursifs());
+        }
+
+        return $descendants;
+    }
 }

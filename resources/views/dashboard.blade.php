@@ -73,6 +73,49 @@
 </div>
 @endif
 
+<!-- Notifications -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <span>
+            <i class="bi bi-bell text-primary me-2"></i>Notifications
+            @if($notificationsNonLues > 0)
+            <span class="badge bg-danger ms-1">{{ $notificationsNonLues }}</span>
+            @endif
+        </span>
+        @if($notificationsNonLues > 0)
+        <form method="POST" action="{{ route('notifications.tout-lire') }}">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Tout marquer comme lu</button>
+        </form>
+        @endif
+    </div>
+    <div class="card-body p-0">
+        @forelse($notifications as $notification)
+        <form method="POST" action="{{ route('notifications.lire', $notification->id) }}">
+            @csrf
+            <button type="submit"
+                    class="d-flex w-100 align-items-start gap-3 p-3 border-bottom text-start bg-transparent border-0 border-top-0 border-start-0 border-end-0 {{ $notification->read_at ? '' : 'bg-primary bg-opacity-10' }}">
+                <i class="bi {{ $notification->data['icone'] ?? 'bi-bell' }} fs-5 text-primary mt-1"></i>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="small {{ $notification->read_at ? '' : 'fw-semibold' }}">{{ $notification->data['message'] ?? '' }}</div>
+                    @if(! empty($notification->data['note']))
+                    <div class="small text-muted fst-italic">« {{ $notification->data['note'] }} »</div>
+                    @endif
+                    <div class="text-muted" style="font-size:0.7rem;">{{ $notification->created_at->locale('fr')->diffForHumans() }}</div>
+                </div>
+                @unless($notification->read_at)
+                <span class="activity-dot bg-primary flex-shrink-0"></span>
+                @endunless
+            </button>
+        </form>
+        @empty
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-bell-slash fs-3 d-block mb-2"></i>Aucune notification
+        </div>
+        @endforelse
+    </div>
+</div>
+
 <div class="row g-3 mb-4">
     <!-- Graphique -->
     <div class="col-lg-5">

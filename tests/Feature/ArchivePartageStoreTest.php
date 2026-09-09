@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ArchiveFichier;
+use App\Models\ArchiveFolder;
 use App\Models\ArchivePartage;
 use App\Models\User;
 use App\Notifications\FichierPartageNotification;
@@ -48,7 +49,10 @@ class ArchivePartageStoreTest extends TestCase
         $response->assertRedirect();
         $copie = ArchiveFichier::where('user_id', $destinataire->id)->where('intitule', 'Convention UAC')->first();
         $this->assertNotNull($copie);
-        $this->assertNull($copie->folder_id);
+        $dossierCollecteur = ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Partages reçus')->first();
+        $this->assertNotNull($dossierCollecteur);
+        $this->assertNull($dossierCollecteur->parent_id);
+        $this->assertSame($dossierCollecteur->id, $copie->folder_id);
         $this->assertNotSame($fichier->chemin_fichier, $copie->chemin_fichier);
         Storage::disk('public')->assertExists($copie->chemin_fichier);
 
@@ -60,6 +64,75 @@ class ArchivePartageStoreTest extends TestCase
         ]);
 
         Notification::assertSentTo($destinataire, FichierPartageNotification::class);
+    }
+
+    public function test_an_optional_note_is_stored_on_the_share_and_passed_to_the_notification(): void
+    {
+        Notification::fake();
+        Storage::fake('public');
+
+        $expediteur = User::factory()->create();
+        $destinataire = User::factory()->create();
+        $fichier = ArchiveFichier::factory()->create(['user_id' => $expediteur->id]);
+
+        $this->actingAs($expediteur)->post('/archives/partages', [
+            'fichier_ids' => [$fichier->id],
+            'destinataire_ids' => [$destinataire->id],
+            'note' => 'Merci de vérifier la page 3.',
+        ]);
+
+        $this->assertDatabaseHas('archive_partages', [
+            'fichier_original_id' => $fichier->id,
+            'note' => 'Merci de vérifier la page 3.',
+        ]);
+
+        Notification::assertSentTo($destinataire, function (FichierPartageNotification $notification) {
+            return $notification->note === 'Merci de vérifier la page 3.';
+        });
+    }
+
+    public function test_note_is_optional_when_sharing(): void
+    {
+        Notification::fake();
+        Storage::fake('public');
+
+        $expediteur = User::factory()->create();
+        $destinataire = User::factory()->create();
+        $fichier = ArchiveFichier::factory()->create(['user_id' => $expediteur->id]);
+
+        $response = $this->actingAs($expediteur)->post('/archives/partages', [
+            'fichier_ids' => [$fichier->id],
+            'destinataire_ids' => [$destinataire->id],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('archive_partages', [
+            'fichier_original_id' => $fichier->id,
+            'note' => null,
+        ]);
+    }
+
+    public function test_two_separate_shares_reuse_the_same_partages_recus_folder(): void
+    {
+        Notification::fake();
+        Storage::fake('public');
+
+        $expediteur = User::factory()->create();
+        $destinataire = User::factory()->create();
+        $fichier1 = ArchiveFichier::factory()->create(['user_id' => $expediteur->id]);
+        $fichier2 = ArchiveFichier::factory()->create(['user_id' => $expediteur->id]);
+
+        $this->actingAs($expediteur)->post('/archives/partages', [
+            'fichier_ids' => [$fichier1->id],
+            'destinataire_ids' => [$destinataire->id],
+        ]);
+        $this->actingAs($expediteur)->post('/archives/partages', [
+            'fichier_ids' => [$fichier2->id],
+            'destinataire_ids' => [$destinataire->id],
+        ]);
+
+        $this->assertSame(1, ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Partages reçus')->count());
+        $this->assertSame(2, ArchiveFichier::where('user_id', $destinataire->id)->count());
     }
 
     public function test_user_can_share_multiple_files_with_multiple_recipients_in_one_request(): void
@@ -156,7 +229,8 @@ class ArchivePartageStoreTest extends TestCase
             'destinataire_ids' => [$destinataire->id],
         ]);
 
-        $response = $this->actingAs($destinataire)->get('/archives');
+        $dossierCollecteur = ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Partages reçus')->firstOrFail();
+        $response = $this->actingAs($destinataire)->get('/archives/'.$dossierCollecteur->id);
 
         $response->assertOk();
         $response->assertSee('Convention UAC');
