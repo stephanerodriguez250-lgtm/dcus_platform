@@ -121,7 +121,7 @@ class ArchiveController extends Controller
             'intitule' => 'required|string|max:255',
             'numero' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'fichier' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
+            'fichier' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:102400',
         ]);
 
         $dossier = null;

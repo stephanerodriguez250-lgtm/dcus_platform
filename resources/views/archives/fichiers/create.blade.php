@@ -60,7 +60,7 @@
                         <div class="col-12">
                             <label class="form-label fw-semibold">Fichier <span class="text-danger">*</span></label>
                             <input type="file" name="fichier" class="form-control @error('fichier') is-invalid @enderror">
-                            <div class="form-text">PDF, Word, Excel ou image — 10 Mo maximum.</div>
+                            <div class="form-text">PDF, Word, Excel ou image — 100 Mo maximum.</div>
                             @error('fichier')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
