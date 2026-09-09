@@ -72,7 +72,7 @@ class ArchivePartageController extends Controller
                     'destinataire_id' => $destinataire->id,
                 ]);
 
-                $destinataire->notify(new FichierPartageNotification($fichier, $expediteur));
+                $destinataire->notify(new FichierPartageNotification($fichier, $expediteur, $copie));
             }
         }
 
