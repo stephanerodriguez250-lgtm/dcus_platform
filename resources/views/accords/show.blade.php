@@ -16,94 +16,81 @@
                     <i class="bi bi-file-earmark-text text-primary"></i>
                     <span class="fw-semibold">{{ $accord->titre }}</span>
                 </div>
-                <span class="badge bg-{{ $accord->statut_color }} fs-6">{{ $accord->statut_label }}</span>
+                <span class="badge bg-{{ $accord->etape_color }} fs-6">{{ $accord->etape_label }}</span>
             </div>
             <div class="card-body">
 
                 <!-- Progression visuelle -->
                 @php
-                    $etapes = ['identifie','en_negotiation','signe','en_execution','cloture'];
-                    $currentIndex = array_search($accord->statut, $etapes);
-                    $isAbandonne = $accord->statut === 'abandonne';
+                    $etapes = ['recu', 'apprecie', 'envoye', 'signe'];
+                    $currentIndex = array_search($accord->etape, $etapes);
                 @endphp
-
-                @if(!$isAbandonne)
                 <div class="mb-4">
-                    <div class="d-flex justify-content-between mb-1">
-                        <small class="text-muted">Progression</small>
-                        <small class="text-muted">{{ $currentIndex !== false ? $currentIndex + 1 : 0 }}/{{ count($etapes) }}</small>
-                    </div>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-primary"
-                             style="width: {{ $currentIndex !== false ? (($currentIndex + 1) / count($etapes)) * 100 : 0 }}%">
-                        </div>
+                        <div class="progress-bar bg-primary" style="width: {{ (($currentIndex + 1) / count($etapes)) * 100 }}%"></div>
                     </div>
                     <div class="d-flex justify-content-between mt-2">
                         @foreach($etapes as $i => $etape)
                         <div class="text-center" style="flex:1;">
                             <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center
-                                {{ $currentIndex !== false && $i <= $currentIndex ? 'bg-primary text-white' : 'bg-light text-muted border' }}"
+                                {{ $i <= $currentIndex ? 'bg-primary text-white' : 'bg-light text-muted border' }}"
                                  style="width:24px;height:24px;font-size:0.7rem;">
-                                @if($currentIndex !== false && $i < $currentIndex)
+                                @if($i < $currentIndex)
                                     <i class="bi bi-check"></i>
                                 @else
                                     {{ $i + 1 }}
                                 @endif
                             </div>
                             <div style="font-size:0.62rem;" class="mt-1 text-muted">
-                                {{ \App\Models\Accord::$statuts[$etape] }}
+                                {{ \App\Models\Accord::$etapeLabels[$etape] }}
                             </div>
                         </div>
                         @endforeach
                     </div>
                 </div>
-                @endif
 
                 <!-- Infos principales -->
                 <div class="row g-3 mb-4">
                     <div class="col-sm-6">
-                        <div class="text-muted small fw-semibold text-uppercase mb-1">🌍 Pays partenaire</div>
-                        <div class="fw-semibold">{{ $accord->pays_partenaire }}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="text-muted small fw-semibold text-uppercase mb-1">🏛️ Institution</div>
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Université / Institution</div>
                         <div class="fw-semibold">{{ $accord->institution_partenaire }}</div>
                     </div>
-                    @if($accord->universite_beneficiaire)
                     <div class="col-sm-6">
-                        <div class="text-muted small fw-semibold text-uppercase mb-1">🎓 Université bénéficiaire</div>
-                        <div>{{ $accord->universite_beneficiaire }}</div>
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Référence MESRS</div>
+                        <div class="fw-semibold">{{ $accord->reference }}</div>
                     </div>
-                    @endif
-                    @if($accord->reunion)
                     <div class="col-sm-6">
-                        <div class="text-muted small fw-semibold text-uppercase mb-1">📅 Réunion d'origine</div>
-                        <a href="{{ route('reunions.show', $accord->reunion) }}" class="text-decoration-none">
-                            {{ $accord->reunion->titre }}
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Arrivé le</div>
+                        <div>{{ $accord->date_arrivee->format('d/m/Y') }} à {{ substr($accord->heure_arrivee, 0, 5) }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Fichier de l'accord</div>
+                        @if($accord->chemin_fichier)
+                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($accord->chemin_fichier) }}"
+                           target="_blank" rel="noopener" class="text-decoration-none">
+                            <i class="bi bi-download me-1"></i>{{ $accord->nom_fichier }}
                         </a>
+                        @else
+                        <span class="text-muted">—</span>
+                        @endif
                     </div>
-                    @endif
                 </div>
 
-                @if($accord->description)
-                <div class="mb-4">
-                    <div class="text-muted small fw-semibold text-uppercase mb-2">📋 Description / Objectifs</div>
-                    <div class="bg-light rounded p-3" style="white-space: pre-line;">{{ $accord->description }}</div>
-                </div>
-                @endif
-
-                <!-- Dates clés -->
+                @if($accord->envoye_le || $accord->date_signature)
                 <div class="row g-2">
+                    @if($accord->envoye_le)
                     <div class="col-sm-4">
                         <div class="border rounded p-2 text-center">
-                            <div class="text-muted small">Identifié le</div>
-                            <div class="fw-semibold">{{ $accord->date_identification?->format('d/m/Y') ?? '—' }}</div>
+                            <div class="text-muted small">Envoyé le</div>
+                            <div class="fw-semibold">{{ $accord->envoye_le->format('d/m/Y') }}</div>
                         </div>
                     </div>
+                    @endif
+                    @if($accord->date_signature)
                     <div class="col-sm-4">
                         <div class="border rounded p-2 text-center">
                             <div class="text-muted small">Signé le</div>
-                            <div class="fw-semibold">{{ $accord->date_signature?->format('d/m/Y') ?? '—' }}</div>
+                            <div class="fw-semibold">{{ $accord->date_signature->format('d/m/Y') }}</div>
                         </div>
                     </div>
                     <div class="col-sm-4">
@@ -111,10 +98,13 @@
                             <div class="text-muted small">Expire le</div>
                             <div class="fw-semibold {{ $accord->date_expiration && $accord->date_expiration->isPast() ? 'text-danger' : '' }}">
                                 {{ $accord->date_expiration?->format('d/m/Y') ?? '—' }}
+                                @if($accord->duree_label)<div class="text-muted small">({{ $accord->duree_label }})</div>@endif
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
+                @endif
             </div>
             @if(auth()->user()->canManage())
             <div class="card-footer d-flex gap-2 py-3">
@@ -132,11 +122,68 @@
             @endif
         </div>
 
-        <!-- Historique des statuts -->
+        <!-- Appréciation -->
+        <div class="card mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clipboard-check text-primary me-2"></i>Fiche d'appréciation</span>
+                @if(auth()->user()->peutApprecierAccords())
+                <a href="{{ route('accords.apprecier.create', $accord) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-{{ $accord->appreciation ? 'pencil' : 'plus' }} me-1"></i>{{ $accord->appreciation ? 'Modifier' : 'Apprécier' }}
+                </a>
+                @endif
+            </div>
+            <div class="card-body">
+                @if($accord->appreciation)
+                @php $a = $accord->appreciation; @endphp
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Origine</div>
+                        <div>{{ $a->origine }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Objet</div>
+                        <div>{{ $a->objet }}</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Avis</div>
+                        <div style="white-space: pre-line;">{{ $a->avis }}</div>
+                    </div>
+                    @if($a->observations_forme)
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Observations sur la forme</div>
+                        <div style="white-space: pre-line;">{{ $a->observations_forme }}</div>
+                    </div>
+                    @endif
+                    @if($a->observations_fond)
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Observations sur le fond</div>
+                        <div style="white-space: pre-line;">{{ $a->observations_fond }}</div>
+                    </div>
+                    @endif
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="text-muted small">
+                        Par {{ $a->redacteur->nom_complet }} — {{ $a->created_at->locale('fr')->translatedFormat('d M Y à H:i') }}
+                    </div>
+                    @if($a->chemin_fiche_word)
+                    <a href="{{ route('accords.appreciations.telecharger', $a) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-word me-1"></i>Télécharger la fiche (.docx)
+                    </a>
+                    @endif
+                </div>
+                @else
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-clipboard-x fs-3 d-block mb-2"></i>Aucune appréciation enregistrée
+                </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Historique -->
         <div class="card">
             <div class="card-header py-3 d-flex align-items-center gap-2">
                 <i class="bi bi-clock-history text-primary"></i>
-                <span>Historique des statuts</span>
+                <span>Historique</span>
                 <span class="badge bg-secondary">{{ $accord->historiques->count() }}</span>
             </div>
             <div class="card-body p-0">
@@ -149,20 +196,12 @@
                         </div>
                     </div>
                     <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            @if($h->ancien_statut)
-                                <span class="badge bg-secondary">{{ $h->ancien_statut_label }}</span>
-                                <i class="bi bi-arrow-right text-muted"></i>
-                            @endif
-                            <span class="badge bg-{{ \App\Models\Accord::$statutColors[$h->nouveau_statut] ?? 'primary' }}">
-                                {{ $h->nouveau_statut_label }}
-                            </span>
-                        </div>
+                        <div class="fw-semibold small">{{ $h->evenement }}</div>
                         @if($h->commentaire)
                         <div class="text-muted small mt-1">{{ $h->commentaire }}</div>
                         @endif
                         <div class="text-muted" style="font-size:0.75rem;">
-                            Par {{ $h->modificateur->nom_complet }} —
+                            {{ $h->modificateur->nom_complet }} —
                             {{ \Carbon\Carbon::parse($h->date_modification)->locale('fr')->translatedFormat('d M Y à H:i') }}
                         </div>
                     </div>
@@ -177,32 +216,54 @@
     <!-- Colonne latérale -->
     <div class="col-lg-4">
 
-        <!-- Mise à jour du statut -->
-        @if(auth()->user()->canManage() && $accord->statut !== 'cloture' && $accord->statut !== 'abandonne')
+        @if(auth()->user()->canManage() && $accord->appreciation && ! $accord->envoye_le)
         <div class="card mb-3">
-            <div class="card-header py-3">
-                <i class="bi bi-arrow-repeat text-primary me-2"></i>Mettre à jour le statut
-            </div>
+            <div class="card-header py-3"><i class="bi bi-send text-primary me-2"></i>Envoi au destinataire</div>
             <div class="card-body">
-                <form method="POST" action="{{ route('accords.statut', $accord) }}">
+                <p class="text-muted small">Marquez l'accord et sa fiche d'appréciation comme envoyés au destinataire.</p>
+                <form method="POST" action="{{ route('accords.envoyer', $accord) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg me-2"></i>Marquer comme envoyé
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endif
+
+        @if(auth()->user()->canManage() && $accord->envoye_le && ! $accord->date_signature)
+        <div class="card mb-3">
+            <div class="card-header py-3"><i class="bi bi-pen text-primary me-2"></i>Enregistrer la signature</div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('accords.signer', $accord) }}">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Nouveau statut</label>
-                        <select name="statut" class="form-select">
-                            @foreach(\App\Models\Accord::$statuts as $key => $label)
-                                @if($key !== $accord->statut)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                                @endif
-                            @endforeach
-                        </select>
+                        <label class="form-label fw-semibold">Date de signature</label>
+                        <input type="date" name="date_signature"
+                               class="form-control @error('date_signature') is-invalid @enderror"
+                               value="{{ old('date_signature') }}">
+                        <div class="form-text">Laissez vide pour utiliser la date du jour.</div>
+                        @error('date_signature')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Commentaire</label>
-                        <textarea name="commentaire" rows="3" class="form-control"
-                                  placeholder="Précisez la raison du changement..."></textarea>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Durée</label>
+                            <input type="number" min="1" name="duree_valeur"
+                                   class="form-control @error('duree_valeur') is-invalid @enderror"
+                                   value="{{ old('duree_valeur') }}">
+                            @error('duree_valeur')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Unité</label>
+                            <select name="duree_unite" class="form-select @error('duree_unite') is-invalid @enderror">
+                                <option value="ans" {{ old('duree_unite') == 'ans' ? 'selected' : '' }}>Ans</option>
+                                <option value="mois" {{ old('duree_unite') == 'mois' ? 'selected' : '' }}>Mois</option>
+                            </select>
+                            @error('duree_unite')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-check-lg me-2"></i>Valider le changement
+                        <i class="bi bi-check-lg me-2"></i>Enregistrer la signature
                     </button>
                 </form>
             </div>
@@ -216,17 +277,13 @@
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <div class="text-muted small">Créé par</div>
+                    <div class="text-muted small">Enregistré par</div>
                     <div class="fw-semibold">{{ $accord->createur->nom_complet }}</div>
                     <div class="text-muted small">{{ $accord->createur->poste }}</div>
                 </div>
-                <div class="mb-3">
-                    <div class="text-muted small">Date de création</div>
-                    <div>{{ $accord->created_at->locale('fr')->translatedFormat('d M Y à H:i') }}</div>
-                </div>
                 <div>
-                    <div class="text-muted small">Dernière modification</div>
-                    <div>{{ $accord->updated_at->locale('fr')->translatedFormat('d M Y à H:i') }}</div>
+                    <div class="text-muted small">Date d'enregistrement</div>
+                    <div>{{ $accord->created_at->locale('fr')->translatedFormat('d M Y à H:i') }}</div>
                 </div>
             </div>
         </div>

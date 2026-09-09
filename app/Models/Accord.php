@@ -4,66 +4,108 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Accord extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'titre', 'institution_partenaire', 'pays_partenaire',
-        'universite_beneficiaire', 'description',
-        'date_identification', 'date_signature', 'date_expiration',
-        'statut', 'reunion_id', 'created_by',
+        'titre', 'institution_partenaire', 'reference',
+        'date_arrivee', 'heure_arrivee',
+        'chemin_fichier', 'nom_fichier',
+        'envoye_le',
+        'date_signature', 'duree_valeur', 'duree_unite', 'date_expiration',
+        'alerte_expiration_envoyee_le',
+        'created_by',
     ];
 
     protected $casts = [
-        'date_identification' => 'date',
+        'date_arrivee' => 'date',
+        'envoye_le' => 'date',
         'date_signature' => 'date',
         'date_expiration' => 'date',
+        'alerte_expiration_envoyee_le' => 'datetime',
     ];
 
-    public static array $statuts = [
-        'identifie' => 'Identifié',
-        'en_negotiation' => 'En négociation',
+    public static array $dureeUnites = [
+        'mois' => 'mois',
+        'ans' => 'ans',
+    ];
+
+    public static array $etapeLabels = [
+        'recu' => 'Reçu',
+        'apprecie' => 'Apprécié',
+        'envoye' => 'Envoyé',
         'signe' => 'Signé',
-        'en_execution' => 'En exécution',
-        'cloture' => 'Clôturé',
-        'abandonne' => 'Abandonné',
     ];
 
-    public static array $statutColors = [
-        'identifie' => 'secondary',
-        'en_negotiation' => 'warning',
-        'signe' => 'info',
-        'en_execution' => 'primary',
-        'cloture' => 'success',
-        'abandonne' => 'danger',
+    public static array $etapeColors = [
+        'recu' => 'secondary',
+        'apprecie' => 'info',
+        'envoye' => 'warning',
+        'signe' => 'success',
     ];
 
-    public function getStatutLabelAttribute(): string
-    {
-        return self::$statuts[$this->statut] ?? $this->statut;
-    }
-
-    public function getStatutColorAttribute(): string
-    {
-        return self::$statutColors[$this->statut] ?? 'secondary';
-    }
-
-    // Relations
-    public function reunion()
-    {
-        return $this->belongsTo(Reunion::class, 'reunion_id');
-    }
-
+    // --- Relations ---
     public function createur()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function appreciation()
+    {
+        return $this->hasOne(AccordAppreciation::class);
+    }
+
     public function historiques()
     {
-        return $this->hasMany(AccordHistorique::class, 'accord_id')
-            ->orderByDesc('date_modification');
+        return $this->hasMany(AccordHistorique::class)->orderByDesc('date_modification');
+    }
+
+    // --- Étape calculée (le workflow n'a pas de statut stocké, il se déduit des données) ---
+    public function getEtapeAttribute(): string
+    {
+        if ($this->date_signature) {
+            return 'signe';
+        }
+        if ($this->envoye_le) {
+            return 'envoye';
+        }
+        if ($this->appreciation) {
+            return 'apprecie';
+        }
+
+        return 'recu';
+    }
+
+    public function getEtapeLabelAttribute(): string
+    {
+        return self::$etapeLabels[$this->etape];
+    }
+
+    public function getEtapeColorAttribute(): string
+    {
+        return self::$etapeColors[$this->etape];
+    }
+
+    public function getDureeLabelAttribute(): ?string
+    {
+        if (! $this->duree_valeur || ! $this->duree_unite) {
+            return null;
+        }
+
+        return $this->duree_valeur.' '.self::$dureeUnites[$this->duree_unite];
+    }
+
+    public function calculerDateExpiration(): ?Carbon
+    {
+        if (! $this->date_signature || ! $this->duree_valeur || ! $this->duree_unite) {
+            return null;
+        }
+
+        return $this->duree_unite === 'ans'
+            ? $this->date_signature->copy()->addYears($this->duree_valeur)
+            : $this->date_signature->copy()->addMonths($this->duree_valeur);
     }
 }

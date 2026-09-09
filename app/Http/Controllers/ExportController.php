@@ -69,11 +69,6 @@ class ExportController extends Controller
 
     private function filtrerAccords(Request $request)
     {
-        $query = Accord::with(['reunion', 'createur'])->orderByDesc('created_at');
-        if ($request->filled('statut')) {
-            $query->where('statut', $request->statut);
-        }
-
-        return $query->get();
+        return Accord::with('createur')->orderByDesc('created_at')->get();
     }
 }

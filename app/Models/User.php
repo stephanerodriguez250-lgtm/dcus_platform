@@ -74,6 +74,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Peut laisser une appréciation sur un accord : gestionnaires, ou agent explicitement autorisé
+     * (voir AccordAppreciateur).
+     */
+    public function peutApprecierAccords(): bool
+    {
+        return $this->canManage() || AccordAppreciateur::where('user_id', $this->id)->exists();
+    }
+
+    /**
      * Tous les utilisateurs actifs, à l'exception de celui dont l'id est fourni (ex: l'auteur d'une action).
      */
     public static function actifsSauf(?int $userId): Collection

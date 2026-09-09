@@ -21,10 +21,9 @@ class AccordFactory extends Factory
         return [
             'titre' => fake()->sentence(5),
             'institution_partenaire' => fake()->company(),
-            'pays_partenaire' => fake()->country(),
-            'universite_beneficiaire' => fake()->company(),
-            'description' => fake()->paragraph(),
-            'statut' => 'identifie',
+            'reference' => 'MESRS-'.fake()->unique()->numerify('####/####'),
+            'date_arrivee' => fake()->date(),
+            'heure_arrivee' => '09:00',
             'created_by' => User::factory(),
         ];
     }

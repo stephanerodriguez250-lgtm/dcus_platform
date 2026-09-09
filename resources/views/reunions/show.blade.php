@@ -70,42 +70,6 @@
             </div>
             @endif
         </div>
-        <!-- Accords liés -->
-        <div class="card">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-file-earmark-text text-primary"></i>
-                    <span>Accords issus de cette réunion</span>
-                    <span class="badge bg-primary">{{ $reunion->accords->count() }}</span>
-                </div>
-                @if(auth()->user()->canManage())
-                <a href="{{ route('accords.create', ['reunion_id' => $reunion->id]) }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus me-1"></i>Lier un accord
-                </a>
-                @endif
-            </div>
-            <div class="card-body p-0">
-                @forelse($reunion->accords as $accord)
-                <div class="d-flex align-items-center gap-3 p-3 border-bottom">
-                    <div class="flex-grow-1">
-                        <div class="fw-semibold">{{ $accord->titre }}</div>
-                        <div class="text-muted small">
-                            <i class="bi bi-globe me-1"></i>{{ $accord->pays_partenaire }} — {{ $accord->institution_partenaire }}
-                        </div>
-                    </div>
-                    <span class="badge bg-{{ $accord->statut_color }}">{{ $accord->statut_label }}</span>
-                    <a href="{{ route('accords.show', $accord) }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                </div>
-                @empty
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-file-x fs-3 d-block mb-2"></i>
-                    Aucun accord lié à cette réunion
-                </div>
-                @endforelse
-            </div>
-        </div>
     </div>
     <!-- Colonne latérale -->
     <div class="col-lg-4">

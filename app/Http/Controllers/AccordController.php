@@ -4,51 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\Accord;
 use App\Models\AccordHistorique;
-use App\Models\Reunion;
 use App\Models\User;
 use App\Notifications\AccordCreeNotification;
-use App\Notifications\AccordStatutChangeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AccordController extends Controller
 {
     // Liste des accords
     public function index(Request $request)
     {
-        $query = Accord::with(['reunion', 'createur'])->orderByDesc('created_at');
-
-        if ($request->filled('statut')) {
-            $query->where('statut', $request->statut);
-        }
+        $query = Accord::with(['createur', 'appreciation'])->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('titre', 'like', '%'.$request->search.'%')
-                    ->orWhere('institution_partenaire', 'like', '%'.$request->search.'%')
-                    ->orWhere('pays_partenaire', 'like', '%'.$request->search.'%')
-                    ->orWhere('universite_beneficiaire', 'like', '%'.$request->search.'%');
+                    ->orWhere('reference', 'like', '%'.$request->search.'%')
+                    ->orWhere('institution_partenaire', 'like', '%'.$request->search.'%');
             });
         }
 
         $accords = $query->paginate(10)->withQueryString();
-        $statuts = Accord::$statuts;
 
-        return view('accords.index', compact('accords', 'statuts'));
+        $etapeCounts = [
+            'recu' => Accord::doesntHave('appreciation')->count(),
+            'apprecie' => Accord::has('appreciation')->whereNull('envoye_le')->count(),
+            'envoye' => Accord::whereNotNull('envoye_le')->whereNull('date_signature')->count(),
+            'signe' => Accord::whereNotNull('date_signature')->count(),
+        ];
+
+        return view('accords.index', compact('accords', 'etapeCounts'));
     }
 
     // Formulaire de création
-    public function create(Request $request)
+    public function create()
     {
         $this->authorize('create', Accord::class);
-        $statuts = Accord::$statuts;
-        $reunions = Reunion::orderByDesc('date')->get();
-        $reunion_id = $request->get('reunion_id');
 
-        return view('accords.create', compact('statuts', 'reunions', 'reunion_id'));
+        return view('accords.create');
     }
 
-    // Enregistrement
+    // Enregistrement (étape 1 : réception)
     public function store(Request $request)
     {
         $this->authorize('create', Accord::class);
@@ -56,25 +53,26 @@ class AccordController extends Controller
         $data = $request->validate([
             'titre' => 'required|string|max:255',
             'institution_partenaire' => 'required|string|max:255',
-            'pays_partenaire' => 'required|string|max:255',
-            'universite_beneficiaire' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'date_identification' => 'nullable|date',
-            'date_signature' => 'nullable|date',
-            'date_expiration' => 'nullable|date|after_or_equal:date_signature',
-            'statut' => 'required|in:'.implode(',', array_keys(Accord::$statuts)),
-            'reunion_id' => 'nullable|exists:reunions,id',
+            'reference' => 'required|string|max:255',
+            'date_arrivee' => 'nullable|date',
+            'heure_arrivee' => 'nullable|date_format:H:i',
+            'fichier' => 'required|file|mimes:pdf,doc,docx|max:20480',
         ]);
+
+        $data['date_arrivee'] = $data['date_arrivee'] ?? now()->toDateString();
+        $data['heure_arrivee'] = $data['heure_arrivee'] ?? now()->format('H:i');
+
+        $file = $request->file('fichier');
+        $data['chemin_fichier'] = $file->store('accords/fichiers', 'public');
+        $data['nom_fichier'] = $file->getClientOriginalName();
+        unset($data['fichier']);
 
         $data['created_by'] = Auth::id();
         $accord = Accord::create($data);
 
-        // Enregistrer dans l'historique
         AccordHistorique::create([
             'accord_id' => $accord->id,
-            'ancien_statut' => null,
-            'nouveau_statut' => $accord->statut,
-            'commentaire' => 'Accord créé.',
+            'evenement' => 'Accord reçu',
             'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
@@ -90,7 +88,7 @@ class AccordController extends Controller
     // Détail d'un accord
     public function show(Accord $accord)
     {
-        $accord->load(['reunion', 'createur', 'historiques.modificateur']);
+        $accord->load(['createur', 'appreciation.redacteur', 'historiques.modificateur']);
 
         return view('accords.show', compact('accord'));
     }
@@ -99,13 +97,11 @@ class AccordController extends Controller
     public function edit(Accord $accord)
     {
         $this->authorize('update', $accord);
-        $statuts = Accord::$statuts;
-        $reunions = Reunion::orderByDesc('date')->get();
 
-        return view('accords.edit', compact('accord', 'statuts', 'reunions'));
+        return view('accords.edit', compact('accord'));
     }
 
-    // Mise à jour
+    // Mise à jour (étape 1, corrections)
     public function update(Request $request, Accord $accord)
     {
         $this->authorize('update', $accord);
@@ -113,14 +109,21 @@ class AccordController extends Controller
         $data = $request->validate([
             'titre' => 'required|string|max:255',
             'institution_partenaire' => 'required|string|max:255',
-            'pays_partenaire' => 'required|string|max:255',
-            'universite_beneficiaire' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'date_identification' => 'nullable|date',
-            'date_signature' => 'nullable|date',
-            'date_expiration' => 'nullable|date',
-            'reunion_id' => 'nullable|exists:reunions,id',
+            'reference' => 'required|string|max:255',
+            'date_arrivee' => 'required|date',
+            'heure_arrivee' => 'required|date_format:H:i',
+            'fichier' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
         ]);
+
+        if ($request->hasFile('fichier')) {
+            if ($accord->chemin_fichier) {
+                Storage::disk('public')->delete($accord->chemin_fichier);
+            }
+            $file = $request->file('fichier');
+            $data['chemin_fichier'] = $file->store('accords/fichiers', 'public');
+            $data['nom_fichier'] = $file->getClientOriginalName();
+        }
+        unset($data['fichier']);
 
         $accord->update($data);
 
@@ -128,50 +131,66 @@ class AccordController extends Controller
             ->with('success', 'Accord mis à jour avec succès.');
     }
 
-    // Mise à jour du statut uniquement
-    public function updateStatut(Request $request, Accord $accord)
+    // Étape 3a : marquer l'accord + la fiche comme envoyés au destinataire
+    public function envoyer(Accord $accord)
     {
         $this->authorize('update', $accord);
 
-        $data = $request->validate([
-            'statut' => 'required|in:'.implode(',', array_keys(Accord::$statuts)),
-            'commentaire' => 'nullable|string|max:500',
-        ]);
-
-        $ancienStatut = $accord->statut;
-
-        if ($ancienStatut === $data['statut']) {
-            return back()->with('error', 'Le statut est déjà identique.');
+        if ($accord->envoye_le) {
+            return back()->with('error', 'Cet accord a déjà été marqué comme envoyé.');
         }
 
-        // Mise à jour dates automatiques
-        if ($data['statut'] === 'signe' && ! $accord->date_signature) {
-            $accord->date_signature = today();
-        }
-
-        $accord->statut = $data['statut'];
-        $accord->save();
+        $accord->update(['envoye_le' => now()->toDateString()]);
 
         AccordHistorique::create([
             'accord_id' => $accord->id,
-            'ancien_statut' => $ancienStatut,
-            'nouveau_statut' => $data['statut'],
-            'commentaire' => $data['commentaire'] ?? null,
+            'evenement' => 'Accord et fiche d\'appréciation envoyés au destinataire',
             'modifie_par' => Auth::id(),
             'date_modification' => now(),
         ]);
 
-        foreach (User::actifsSauf(Auth::id()) as $utilisateur) {
-            $utilisateur->notify(new AccordStatutChangeNotification($accord, Auth::user(), $ancienStatut, $data['statut']));
-        }
+        return back()->with('success', 'Accord marqué comme envoyé.');
+    }
 
-        return back()->with('success', 'Statut de l\'accord mis à jour.');
+    // Étape 3b : enregistrer la signature
+    public function signer(Request $request, Accord $accord)
+    {
+        $this->authorize('update', $accord);
+
+        $data = $request->validate([
+            'date_signature' => 'nullable|date',
+            'duree_valeur' => 'required|integer|min:1',
+            'duree_unite' => 'required|in:mois,ans',
+        ]);
+
+        $accord->date_signature = $data['date_signature'] ?? now()->toDateString();
+        $accord->duree_valeur = $data['duree_valeur'];
+        $accord->duree_unite = $data['duree_unite'];
+        $accord->date_expiration = $accord->calculerDateExpiration();
+        $accord->save();
+
+        AccordHistorique::create([
+            'accord_id' => $accord->id,
+            'evenement' => 'Signature enregistrée',
+            'modifie_par' => Auth::id(),
+            'date_modification' => now(),
+        ]);
+
+        return redirect()->route('accords.show', $accord)->with('success', 'Signature enregistrée.');
     }
 
     // Suppression
     public function destroy(Accord $accord)
     {
         $this->authorize('delete', $accord);
+
+        if ($accord->chemin_fichier) {
+            Storage::disk('public')->delete($accord->chemin_fichier);
+        }
+        if ($accord->appreciation?->chemin_fiche_word) {
+            Storage::disk('public')->delete($accord->appreciation->chemin_fiche_word);
+        }
+
         $accord->delete();
 
         return redirect()->route('accords.index')

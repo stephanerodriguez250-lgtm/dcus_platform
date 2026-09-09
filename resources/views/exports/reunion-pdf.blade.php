@@ -169,37 +169,6 @@ body { font-family: DejaVu Sans, Arial, sans-serif; font-size:9.5px; color:#1a1a
     @endif
   </div>
 
-@if($reunion->accords && $reunion->accords->count() > 0)
-
-  <div class="section">
-    <div class="section-header">Accords issus de cette réunion</div>
-    <table class="accords-table">
-      <thead>
-        <tr>
-          <th style="width:28%">Titre</th>
-          <th style="width:22%">Institution partenaire</th>
-          <th style="width:12%">Pays</th>
-          <th style="width:15%">Date signature</th>
-          <th style="width:13%">Statut</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($reunion->accords as $accord)
-        <tr>
-          <td>{{ $accord->titre }}</td>
-          <td>{{ $accord->institution_partenaire ?? '—' }}</td>
-          <td>{{ $accord->pays_partenaire ?? '—' }}</td>
-          <td>{{ $accord->date_signature ? $accord->date_signature->format('d/m/Y') : '—' }}</td>
-          <td>
-            <span class="bs s-accord-{{ $accord->statut }}">{{ $accord->statut_label }}</span>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-  </div>
-  @endif
-
 
 
   <div class="signatures-section">

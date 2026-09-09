@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AccordAppreciateurController;
+use App\Http\Controllers\AccordAppreciationController;
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\ArchivePartageController;
@@ -82,9 +84,29 @@ Route::middleware('auth')->group(function () {
         ->name('reunions.pdf');
 
     // Accords
+    // Route-order note: "accords/appreciateurs" is declared before the "accords" resource's
+    // GET accords/{accord} route since both match a single path segment.
+    Route::middleware('role:admin')->group(function () {
+        Route::get('accords/appreciateurs', [AccordAppreciateurController::class, 'index'])
+            ->name('accords.appreciateurs.index');
+        Route::post('accords/appreciateurs', [AccordAppreciateurController::class, 'store'])
+            ->name('accords.appreciateurs.store');
+        Route::delete('accords/appreciateurs/{appreciateur}', [AccordAppreciateurController::class, 'destroy'])
+            ->name('accords.appreciateurs.destroy');
+    });
+
     Route::resource('accords', AccordController::class);
-    Route::post('accords/{accord}/statut', [AccordController::class, 'updateStatut'])
-        ->name('accords.statut');
+    Route::post('accords/{accord}/envoyer', [AccordController::class, 'envoyer'])
+        ->name('accords.envoyer');
+    Route::post('accords/{accord}/signer', [AccordController::class, 'signer'])
+        ->name('accords.signer');
+
+    Route::get('accords/{accord}/apprecier', [AccordAppreciationController::class, 'create'])
+        ->name('accords.apprecier.create');
+    Route::post('accords/{accord}/apprecier', [AccordAppreciationController::class, 'store'])
+        ->name('accords.apprecier.store');
+    Route::get('accords/appreciations/{appreciation}/telecharger', [AccordAppreciationController::class, 'telecharger'])
+        ->name('accords.appreciations.telecharger');
 
     // Archives (espace privé par utilisateur)
     Route::get('archives/fichiers/create', [ArchiveController::class, 'createFichier'])

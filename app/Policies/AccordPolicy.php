@@ -21,4 +21,13 @@ class AccordPolicy
     {
         return $user->canManage();
     }
+
+    /**
+     * Laisser une appréciation sur un accord (étape 2) : gestionnaires, ou agent explicitement
+     * autorisé via AccordAppreciateur.
+     */
+    public function apprecier(User $user): bool
+    {
+        return $user->peutApprecierAccords();
+    }
 }

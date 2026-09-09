@@ -37,9 +37,9 @@
         <div class="stat-card" style="background:linear-gradient(135deg,#b45309,#f59e0b);">
             <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
             <div>
-                <div class="stat-number">{{ $stats['accords_en_cours'] }}</div>
-                <div class="stat-label">Accords en cours</div>
-                <div style="font-size:0.72rem;opacity:0.75;">{{ $stats['accords_clotures'] }} clôturé(s)</div>
+                <div class="stat-number">{{ $stats['accords_en_attente'] }}</div>
+                <div class="stat-label">Accords en attente de signature</div>
+                <div style="font-size:0.72rem;opacity:0.75;">reçu / apprécié / envoyé</div>
             </div>
         </div>
     </div>
@@ -118,40 +118,13 @@
 
 <div class="row g-3 mb-4">
     <!-- Graphique -->
-    <div class="col-lg-5">
+    <div class="col-lg-6 mx-auto">
         <div class="card h-100">
             <div class="card-header py-3">
-                <i class="bi bi-pie-chart text-primary me-2"></i>Accords par statut
+                <i class="bi bi-pie-chart text-primary me-2"></i>Accords par étape
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 <canvas id="accordsChart" height="220"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top pays -->
-    <div class="col-lg-7">
-        <div class="card h-100">
-            <div class="card-header py-3">
-                <i class="bi bi-globe text-primary me-2"></i>Top pays partenaires
-            </div>
-            <div class="card-body">
-                @forelse($accords_par_pays as $pays => $total)
-                @php $max = $accords_par_pays->max(); @endphp
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="fw-semibold small">{{ $pays }}</span>
-                        <span class="text-muted small">{{ $total }} accord(s)</span>
-                    </div>
-                    <div class="progress" style="height:8px;">
-                        <div class="progress-bar" style="width:{{ $max > 0 ? ($total/$max)*100 : 0 }}%;background:#1a3a5c;"></div>
-                    </div>
-                </div>
-                @empty
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-globe2 fs-3 d-block mb-2"></i>Aucun accord enregistré
-                </div>
-                @endforelse
             </div>
         </div>
     </div>
@@ -207,9 +180,9 @@
                     <div class="flex-grow-1 overflow-hidden">
                         <a href="{{ route('accords.show', $accord) }}"
                            class="fw-semibold text-decoration-none text-dark d-block text-truncate">{{ $accord->titre }}</a>
-                        <div class="text-muted small"><i class="bi bi-globe me-1"></i>{{ $accord->pays_partenaire }}</div>
+                        <div class="text-muted small"><i class="bi bi-building me-1"></i>{{ $accord->institution_partenaire }}</div>
                     </div>
-                    <span class="badge bg-{{ $accord->statut_color }} flex-shrink-0">{{ $accord->statut_label }}</span>
+                    <span class="badge bg-{{ $accord->etape_color }} flex-shrink-0">{{ $accord->etape_label }}</span>
                 </div>
                 @empty
                 <div class="text-center text-muted py-4">
@@ -232,14 +205,10 @@
             <div class="card-body p-0">
                 @forelse($dernieres_activites as $activite)
                 <div class="d-flex gap-3 p-3 border-bottom">
-                    <div class="activity-dot bg-{{ \App\Models\Accord::$statutColors[$activite->nouveau_statut] ?? 'primary' }} mt-1"></div>
+                    <div class="activity-dot bg-primary mt-1"></div>
                     <div class="overflow-hidden">
                         <div class="small fw-semibold text-truncate">{{ $activite->accord->titre }}</div>
-                        <div class="small text-muted">
-                            → <span class="badge bg-{{ \App\Models\Accord::$statutColors[$activite->nouveau_statut] ?? 'secondary' }} fw-normal">
-                                {{ $activite->nouveau_statut_label }}
-                            </span>
-                        </div>
+                        <div class="small text-muted">{{ $activite->evenement }}</div>
                         <div style="font-size:0.7rem;" class="text-muted">
                             {{ $activite->modificateur->prenom }} ·
                             {{ \Carbon\Carbon::parse($activite->date_modification)->locale('fr')->diffForHumans() }}
@@ -262,7 +231,7 @@
 <script>
 const ctx = document.getElementById('accordsChart');
 if (ctx) {
-    const data = @json($accords_par_statut);
+    const data = @json($accords_par_etape);
     new Chart(ctx, {
         type: 'doughnut',
         data: {

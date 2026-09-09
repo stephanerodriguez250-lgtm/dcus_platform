@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
 
+    ->withSchedule(function ($schedule): void {
+        $schedule->command('accords:notifier-expiration')->daily();
+    })
+
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

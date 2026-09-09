@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-9">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header py-3 d-flex align-items-center gap-2">
                 <i class="bi bi-pencil-square text-primary"></i>
@@ -21,96 +21,62 @@
                 </div>
                 @endif
 
-                <form method="POST" action="{{ route('accords.update', $accord) }}">
+                <form method="POST" action="{{ route('accords.update', $accord) }}" enctype="multipart/form-data">
                     @csrf @method('PUT')
 
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Identification
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Intitulé <span class="text-danger">*</span></label>
-                                <input type="text" name="titre"
-                                       class="form-control @error('titre') is-invalid @enderror"
-                                       value="{{ old('titre', $accord->titre) }}">
-                                @error('titre')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Intitulé <span class="text-danger">*</span></label>
+                            <input type="text" name="titre"
+                                   class="form-control @error('titre') is-invalid @enderror"
+                                   value="{{ old('titre', $accord->titre) }}">
+                            @error('titre')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Pays partenaire <span class="text-danger">*</span></label>
-                                <input type="text" name="pays_partenaire"
-                                       class="form-control @error('pays_partenaire') is-invalid @enderror"
-                                       value="{{ old('pays_partenaire', $accord->pays_partenaire) }}">
-                                @error('pays_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Université / Institution partenaire <span class="text-danger">*</span></label>
+                            <input type="text" name="institution_partenaire"
+                                   class="form-control @error('institution_partenaire') is-invalid @enderror"
+                                   value="{{ old('institution_partenaire', $accord->institution_partenaire) }}">
+                            @error('institution_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Institution partenaire <span class="text-danger">*</span></label>
-                                <input type="text" name="institution_partenaire"
-                                       class="form-control @error('institution_partenaire') is-invalid @enderror"
-                                       value="{{ old('institution_partenaire', $accord->institution_partenaire) }}">
-                                @error('institution_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Référence MESRS <span class="text-danger">*</span></label>
+                            <input type="text" name="reference"
+                                   class="form-control @error('reference') is-invalid @enderror"
+                                   value="{{ old('reference', $accord->reference) }}">
+                            @error('reference')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Université béninoise bénéficiaire</label>
-                                <input type="text" name="universite_beneficiaire" class="form-control"
-                                       value="{{ old('universite_beneficiaire', $accord->universite_beneficiaire) }}">
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date d'arrivée <span class="text-danger">*</span></label>
+                            <input type="date" name="date_arrivee"
+                                   class="form-control @error('date_arrivee') is-invalid @enderror"
+                                   value="{{ old('date_arrivee', $accord->date_arrivee?->format('Y-m-d')) }}">
+                            @error('date_arrivee')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Lier à une réunion</label>
-                                <select name="reunion_id" class="form-select">
-                                    <option value="">— Aucune réunion liée —</option>
-                                    @foreach($reunions as $reunion)
-                                        <option value="{{ $reunion->id }}"
-                                            {{ old('reunion_id', $accord->reunion_id) == $reunion->id ? 'selected' : '' }}>
-                                            {{ $reunion->date->format('d/m/Y') }} — {{ $reunion->titre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Heure d'arrivée <span class="text-danger">*</span></label>
+                            <input type="time" name="heure_arrivee"
+                                   class="form-control @error('heure_arrivee') is-invalid @enderror"
+                                   value="{{ old('heure_arrivee', $accord->heure_arrivee) }}">
+                            @error('heure_arrivee')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Description / Objectifs</label>
-                                <textarea name="description" rows="4" class="form-control">{{ old('description', $accord->description) }}</textarea>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Fichier de l'accord</label>
+                            <input type="file" name="fichier"
+                                   class="form-control @error('fichier') is-invalid @enderror" accept=".pdf,.doc,.docx">
+                            @error('fichier')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">
+                                Fichier actuel : {{ $accord->nom_fichier ?? '—' }}. Laissez vide pour le conserver.
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-                            <i class="bi bi-calendar3 me-2"></i>Dates clés
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date d'identification</label>
-                                <input type="date" name="date_identification" class="form-control"
-                                       value="{{ old('date_identification', $accord->date_identification?->format('Y-m-d')) }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date de signature</label>
-                                <input type="date" name="date_signature" class="form-control"
-                                       value="{{ old('date_signature', $accord->date_signature?->format('Y-m-d')) }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date d'expiration</label>
-                                <input type="date" name="date_expiration" class="form-control"
-                                       value="{{ old('date_expiration', $accord->date_expiration?->format('Y-m-d')) }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-warning d-flex gap-2 align-items-start">
-                        <i class="bi bi-exclamation-triangle mt-1"></i>
-                        <div>
-                            <strong>Note :</strong> Pour changer le statut de l'accord, utilisez le bouton
-                            <em>"Mettre à jour le statut"</em> sur la page de détail — cela conserve l'historique complet.
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-check-lg me-2"></i>Enregistrer les modifications
                         </button>

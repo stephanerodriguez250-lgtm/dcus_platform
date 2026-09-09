@@ -61,7 +61,6 @@
                         <th>Date</th>
                         <th>Lieu</th>
                         <th>Convocateur</th>
-                        <th>Accords</th>
                         <th>Statut</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
@@ -82,11 +81,6 @@
                         <td>{{ $reunion->lieu }}</td>
                         <td>
                             <span class="text-muted small">{{ $reunion->convocateur ?? '—' }}</span>
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border">
-                                {{ $reunion->accords_count ?? $reunion->accords()->count() }} accord(s)
-                            </span>
                         </td>
                         <td>
                             <span class="badge bg-{{ $reunion->statut_color }}">{{ $reunion->statut_label }}</span>
@@ -114,7 +108,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-5">
+                        <td colspan="6" class="text-center text-muted py-5">
                             <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
                             Aucune réunion trouvée
                             @if(auth()->user()->canManage())

@@ -11,22 +11,18 @@ return new class extends Migration
         Schema::create('accords', function (Blueprint $table) {
             $table->id();
             $table->string('titre');
-            $table->string('institution_partenaire'); // Pays / Ministère / Université étrangère
-            $table->string('pays_partenaire');
-            $table->string('universite_beneficiaire')->nullable(); // Université béninoise concernée
-            $table->text('description')->nullable();
-            $table->date('date_identification')->nullable();
+            $table->string('institution_partenaire'); // Université / institution partenaire à l'origine de l'accord
+            $table->string('reference'); // Référence MESRS
+            $table->date('date_arrivee');
+            $table->time('heure_arrivee');
+            $table->string('chemin_fichier')->nullable();
+            $table->string('nom_fichier')->nullable();
+            $table->date('envoye_le')->nullable(); // Étape 3 : accord + fiche transmis au destinataire
             $table->date('date_signature')->nullable();
-            $table->date('date_expiration')->nullable();
-            $table->enum('statut', [
-                'identifie',
-                'en_negotiation',
-                'signe',
-                'en_execution',
-                'cloture',
-                'abandonne',
-            ])->default('identifie');
-            $table->foreignId('reunion_id')->nullable()->constrained('reunions')->nullOnDelete();
+            $table->unsignedSmallInteger('duree_valeur')->nullable();
+            $table->enum('duree_unite', ['mois', 'ans'])->nullable();
+            $table->date('date_expiration')->nullable(); // calculée depuis date_signature + durée
+            $table->timestamp('alerte_expiration_envoyee_le')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

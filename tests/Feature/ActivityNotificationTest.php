@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\Accord;
 use App\Models\User;
 use App\Notifications\AccordCreeNotification;
-use App\Notifications\AccordStatutChangeNotification;
 use App\Notifications\DecisionCreeeNotification;
 use App\Notifications\ReunionCreeeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ActivityNotificationTest extends TestCase
@@ -58,6 +58,7 @@ class ActivityNotificationTest extends TestCase
     public function test_creating_an_accord_notifies_other_active_users(): void
     {
         Notification::fake();
+        Storage::fake('public');
 
         $createur = User::factory()->secretaire()->create();
         $autreActif = User::factory()->create(['actif' => true]);
@@ -65,42 +66,11 @@ class ActivityNotificationTest extends TestCase
         $this->actingAs($createur)->post('/accords', [
             'titre' => 'Convention UAC',
             'institution_partenaire' => 'UAC',
-            'pays_partenaire' => 'Bénin',
-            'statut' => 'identifie',
+            'reference' => 'MESRS-2026/001',
+            'fichier' => UploadedFile::fake()->create('accord.pdf', 100, 'application/pdf'),
         ]);
 
         Notification::assertSentTo($autreActif, AccordCreeNotification::class);
         Notification::assertNotSentTo($createur, AccordCreeNotification::class);
-    }
-
-    public function test_changing_an_accord_statut_notifies_other_active_users(): void
-    {
-        Notification::fake();
-
-        $modificateur = User::factory()->secretaire()->create();
-        $autreActif = User::factory()->create(['actif' => true]);
-        $accord = Accord::factory()->create(['statut' => 'identifie']);
-
-        $this->actingAs($modificateur)->post("/accords/{$accord->id}/statut", [
-            'statut' => 'en_negotiation',
-        ]);
-
-        Notification::assertSentTo($autreActif, AccordStatutChangeNotification::class);
-        Notification::assertNotSentTo($modificateur, AccordStatutChangeNotification::class);
-    }
-
-    public function test_updating_an_accord_without_changing_statut_does_not_notify(): void
-    {
-        Notification::fake();
-
-        $modificateur = User::factory()->secretaire()->create();
-        $autreActif = User::factory()->create(['actif' => true]);
-        $accord = Accord::factory()->create(['statut' => 'identifie']);
-
-        $this->actingAs($modificateur)->post("/accords/{$accord->id}/statut", [
-            'statut' => 'identifie',
-        ]);
-
-        Notification::assertNotSentTo($autreActif, AccordStatutChangeNotification::class);
     }
 }

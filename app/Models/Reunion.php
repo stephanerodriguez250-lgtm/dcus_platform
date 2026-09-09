@@ -46,11 +46,6 @@ class Reunion extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function accords()
-    {
-        return $this->hasMany(Accord::class, 'reunion_id');
-    }
-
     public function decisions()
     {
         return $this->hasMany(Decision::class, 'reunion_id')->orderBy('created_at');

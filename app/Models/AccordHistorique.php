@@ -9,8 +9,7 @@ class AccordHistorique extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'accord_id', 'ancien_statut', 'nouveau_statut',
-        'commentaire', 'modifie_par', 'date_modification',
+        'accord_id', 'evenement', 'commentaire', 'modifie_par', 'date_modification',
     ];
 
     protected $casts = [
@@ -25,15 +24,5 @@ class AccordHistorique extends Model
     public function modificateur()
     {
         return $this->belongsTo(User::class, 'modifie_par');
-    }
-
-    public function getAncienStatutLabelAttribute(): string
-    {
-        return Accord::$statuts[$this->ancien_statut] ?? ($this->ancien_statut ?? '—');
-    }
-
-    public function getNouveauStatutLabelAttribute(): string
-    {
-        return Accord::$statuts[$this->nouveau_statut] ?? $this->nouveau_statut;
     }
 }

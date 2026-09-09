@@ -20,22 +20,20 @@ class DashboardController extends Controller
             'reunions_planifiees' => Reunion::where('statut', 'planifiee')->count(),
             'reunions_terminees' => Reunion::where('statut', 'terminee')->count(),
             'accords_total' => Accord::count(),
-            'accords_en_cours' => Accord::whereIn('statut', ['identifie', 'en_negotiation', 'en_execution'])->count(),
-            'accords_signes' => Accord::where('statut', 'signe')->count(),
-            'accords_clotures' => Accord::where('statut', 'cloture')->count(),
+            'accords_en_attente' => Accord::whereNull('date_signature')->count(),
+            'accords_signes' => Accord::whereNotNull('date_signature')->count(),
             'users_total' => User::where('actif', true)->count(),
         ];
 
-        $accords_par_statut = [];
-        foreach (Accord::$statuts as $key => $label) {
-            $accords_par_statut[$label] = Accord::where('statut', $key)->count();
+        $accords_par_etape = [];
+        foreach (Accord::$etapeLabels as $key => $label) {
+            $accords_par_etape[$label] = match ($key) {
+                'recu' => Accord::doesntHave('appreciation')->count(),
+                'apprecie' => Accord::has('appreciation')->whereNull('envoye_le')->count(),
+                'envoye' => Accord::whereNotNull('envoye_le')->whereNull('date_signature')->count(),
+                'signe' => Accord::whereNotNull('date_signature')->count(),
+            };
         }
-
-        $accords_par_pays = Accord::selectRaw('pays_partenaire, count(*) as total')
-            ->groupBy('pays_partenaire')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->pluck('total', 'pays_partenaire');
 
         $prochaines_reunions = Reunion::where('date', '>=', today())
             ->where('statut', 'planifiee')
@@ -43,7 +41,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $accords_recents = Accord::with('reunion')
+        $accords_recents = Accord::with('createur')
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
@@ -54,7 +52,6 @@ class DashboardController extends Controller
             ->get();
 
         $accords_expirants = Accord::whereNotNull('date_expiration')
-            ->whereNotIn('statut', ['cloture', 'abandonne'])
             ->whereBetween('date_expiration', [today(), today()->addDays(60)])
             ->orderBy('date_expiration')
             ->limit(3)
@@ -62,8 +59,7 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'stats',
-            'accords_par_statut',
-            'accords_par_pays',
+            'accords_par_etape',
             'prochaines_reunions',
             'accords_recents',
             'dernieres_activites',

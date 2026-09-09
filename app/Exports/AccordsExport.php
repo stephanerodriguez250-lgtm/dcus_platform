@@ -36,12 +36,11 @@ class AccordsExport
     {
         return $this->accords->map(fn ($a) => [
             $a->titre,
-            $a->pays_partenaire,
+            $a->reference,
             $a->institution_partenaire,
-            $a->universite_beneficiaire ?? '—',
-            $a->statut_label,
-            $a->reunion?->titre ?? '—',
-            $a->date_identification?->format('d/m/Y') ?? '—',
+            $a->etape_label,
+            $a->date_arrivee?->format('d/m/Y') ?? '—',
+            $a->envoye_le?->format('d/m/Y') ?? '—',
             $a->date_signature?->format('d/m/Y') ?? '—',
             $a->date_expiration?->format('d/m/Y') ?? '—',
             $a->createur->nom_complet,
@@ -53,15 +52,14 @@ class AccordsExport
     {
         return [
             'Intitulé de l\'accord',
-            'Pays partenaire',
+            'Référence MESRS',
             'Institution partenaire',
-            'Université bénéficiaire',
-            'Statut',
-            'Réunion d\'origine',
-            'Date identification',
+            'Étape',
+            'Date d\'arrivée',
+            'Envoyé le',
             'Date signature',
             'Date expiration',
-            'Créé par',
+            'Enregistré par',
             'Date enregistrement',
         ];
     }
