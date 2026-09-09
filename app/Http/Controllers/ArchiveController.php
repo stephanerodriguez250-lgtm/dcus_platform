@@ -188,6 +188,13 @@ class ArchiveController extends Controller
         return Storage::disk('public')->download($fichier->chemin_fichier, $fichier->nom_fichier);
     }
 
+    private static array $typesApercuSurs = [
+        'pdf' => 'application/pdf',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+    ];
+
     public function apercuFichier(ArchiveFichier $fichier)
     {
         $this->authorize('view', $fichier);
@@ -196,6 +203,16 @@ class ArchiveController extends Controller
             return back()->with('error', 'Fichier introuvable.');
         }
 
-        return Storage::disk('public')->response($fichier->chemin_fichier, $fichier->nom_fichier);
+        $mimeSur = self::$typesApercuSurs[strtolower($fichier->type_fichier)] ?? null;
+
+        if (! $mimeSur) {
+            return Storage::disk('public')->download($fichier->chemin_fichier, $fichier->nom_fichier);
+        }
+
+        return Storage::disk('public')->response($fichier->chemin_fichier, $fichier->nom_fichier, [
+            'Content-Type' => $mimeSur,
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+        ]);
     }
 }
