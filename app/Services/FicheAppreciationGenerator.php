@@ -29,14 +29,17 @@ class FicheAppreciationGenerator
 {
     use RendDesParagraphesAvecPuces;
 
-    private const LARGEUR_CONTENU = 9350;
+    private const LARGEUR_CONTENU = 10000;
 
     public function generer(AccordAppreciation $appreciation): string
     {
         $accord = $appreciation->accord;
 
         $phpWord = new PhpWord;
-        $section = $phpWord->addSection();
+        // Marges réduites : l'en-tête doit démarrer près du haut de la page, et la
+        // tabulation droite de l'en-tête (LARGEUR_CONTENU) doit rester à l'intérieur de la
+        // largeur utile (page ~11905 twips - marges) pour ne pas déborder/tronquer le texte.
+        $section = $phpWord->addSection(['marginTop' => 600, 'marginLeft' => 900, 'marginRight' => 900, 'marginBottom' => 900]);
 
         $this->ajouterEnTete($section);
 
@@ -63,11 +66,6 @@ class FicheAppreciationGenerator
         );
         $section->addTextBreak(1);
 
-        $section->addText(
-            "Dans le cadre de l'objet suscité, la DCUS a procédé à une analyse minutieuse du projet et y a relevé les éléments d'appréciation ci-après :"
-        );
-        $section->addTextBreak(1);
-
         $reference = $accord->reference.' du '.$accord->date_arrivee->locale('fr')->translatedFormat('d F Y');
 
         $table = $section->addTable(['borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 100]);
@@ -75,7 +73,12 @@ class FicheAppreciationGenerator
         $this->ajouterLigneChamp($table, 'Objet', $appreciation->objet);
         $this->ajouterLigneChamp($table, 'Référence', $reference);
         $this->ajouterLigneChamp($table, 'Destinataire', $appreciation->origine);
-        $this->ajouterLigneObservations($table, '1°) Observations sur la forme', $appreciation->observations_forme);
+        $this->ajouterLigneObservations(
+            $table,
+            '1°) Observations sur la forme',
+            $appreciation->observations_forme,
+            "Dans le cadre de l'objet suscité, la DCUS a procédé à une analyse minutieuse du projet et y a relevé les éléments d'appréciation ci-après :"
+        );
         $this->ajouterLigneObservations($table, '2°) Observations sur le fond', $appreciation->observations_fond);
         $this->ajouterLigneConclusion($table, $appreciation->avis);
 
@@ -146,10 +149,14 @@ class FicheAppreciationGenerator
         $texteRun->addText($valeur ?: '—');
     }
 
-    private function ajouterLigneObservations(Table $table, string $titre, ?string $texte): void
+    private function ajouterLigneObservations(Table $table, string $titre, ?string $texte, ?string $introduction = null): void
     {
         $table->addRow();
         $cellule = $table->addCell(self::LARGEUR_CONTENU);
+        if ($introduction) {
+            $cellule->addText($introduction);
+            $cellule->addTextBreak(1);
+        }
         $cellule->addText($titre, ['bold' => true]);
         $this->ajouterParagraphes($cellule, $texte);
     }

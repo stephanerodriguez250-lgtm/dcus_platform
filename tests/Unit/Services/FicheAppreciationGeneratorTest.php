@@ -88,6 +88,22 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertNotFalse($positionMinistere);
         $this->assertNotFalse($positionTableau);
         $this->assertLessThan($positionTableau, $positionMinistere, "L'en-tête doit précéder le tableau, pas y être imbriqué.");
+
+        // La marge supérieure doit être réduite pour remonter l'en-tête en haut de la page,
+        // et la tabulation droite de l'en-tête ne doit jamais dépasser la largeur utile de
+        // la page (sinon le texte de droite déborde et se retrouve tronqué à l'impression).
+        $this->assertStringContainsString('w:top="600"', $texte);
+        $this->assertStringContainsString('w:left="900"', $texte);
+        $this->assertStringContainsString('w:right="900"', $texte);
+        $this->assertStringContainsString('w:pos="10000"', $texte);
+
+        // La phrase introductive doit se trouver DANS le tableau, dans la même cellule que
+        // "1°) Observations sur la forme", juste au-dessus — plus avant le tableau.
+        $positionIntro = strpos($texte, "Dans le cadre de l'objet suscité");
+        $positionObservationsForme = strpos($texte, '1°) Observations sur la forme');
+        $this->assertNotFalse($positionIntro);
+        $this->assertGreaterThan($positionTableau, $positionIntro, 'La phrase introductive doit être dans le tableau.');
+        $this->assertLessThan($positionObservationsForme, $positionIntro, 'La phrase introductive doit précéder "1°) Observations sur la forme".');
     }
 
     public function test_les_lignes_avec_puce_deviennent_des_listes_a_puces_avec_sous_niveaux(): void
