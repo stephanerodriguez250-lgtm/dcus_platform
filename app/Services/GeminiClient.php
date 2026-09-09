@@ -32,6 +32,14 @@ class GeminiClient
             throw new RuntimeException('Aucune clé API Gemini configurée (GEMINI_API_KEY).');
         }
 
+        // Le délai HTTP ci-dessous (Http::timeout(60)) doit toujours pouvoir expirer AVANT la
+        // limite globale de PHP (max_execution_time, 30s par défaut) : sinon PHP tue le script
+        // en pleine requête cURL par une erreur fatale non interceptable (pas un Throwable
+        // normal), au lieu de laisser Guzzle lever une exception propre que notre appelant peut
+        // attraper et afficher proprement. Un appel Gemini avec pièce jointe (analyse d'un PDF)
+        // peut légitimement dépasser 30s.
+        set_time_limit(75);
+
         $parts = [['text' => $prompt]];
 
         if ($fichier !== null) {
