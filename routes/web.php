@@ -107,6 +107,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('archives/partages/{partage}', [ArchivePartageController::class, 'destroy'])
         ->name('archives.partages.destroy');
 
+    Route::delete('archives/dossier-partages/{partage}', [ArchivePartageController::class, 'destroyDossier'])
+        ->name('archives.dossier-partages.destroy');
+    Route::get('archives/dossier-partages/{partage}/telecharger', [ArchivePartageController::class, 'telechargerDossier'])
+        ->name('archives.dossier-partages.telecharger');
+
     Route::get('archives/{dossier?}', [ArchiveController::class, 'index'])
         ->name('archives.index');
 
