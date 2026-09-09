@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AccordRapportConformite extends Model
 {
-    use HasFactory;
+    use HasFactory, HasHashedRouteKey;
 
     protected $fillable = [
         'accord_id', 'resume', 'points_conformes', 'points_non_conformes',

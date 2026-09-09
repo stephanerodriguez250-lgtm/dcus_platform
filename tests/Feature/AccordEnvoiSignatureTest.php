@@ -18,7 +18,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create();
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/envoyer");
+        $response = $this->actingAs($secretaire)->post(route('accords.envoyer', $accord));
 
         $response->assertRedirect();
         $this->assertNotNull($accord->fresh()->envoye_le);
@@ -30,7 +30,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create(['envoye_le' => now()->subDay()]);
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/envoyer");
+        $response = $this->actingAs($secretaire)->post(route('accords.envoyer', $accord));
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
@@ -41,7 +41,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create(['envoye_le' => now()]);
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/signer", [
+        $response = $this->actingAs($secretaire)->post(route('accords.signer', $accord), [
             'date_signature' => '2026-01-15',
             'duree_valeur' => 3,
             'duree_unite' => 'ans',
@@ -63,7 +63,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create(['envoye_le' => now()]);
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/signer", [
+        $response = $this->actingAs($secretaire)->post(route('accords.signer', $accord), [
             'date_signature' => '2026-01-15',
             'duree_valeur' => '3',
             'duree_unite' => 'ans',
@@ -78,7 +78,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create(['envoye_le' => now()]);
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/signer", [
+        $this->actingAs($secretaire)->post(route('accords.signer', $accord), [
             'duree_valeur' => 6,
             'duree_unite' => 'mois',
         ]);
@@ -93,7 +93,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $accord = Accord::factory()->create(['envoye_le' => now()]);
         $fichier = UploadedFile::fake()->create('accord-signe.pdf', 100, 'application/pdf');
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/signer", [
+        $response = $this->actingAs($secretaire)->post(route('accords.signer', $accord), [
             'duree_valeur' => 2,
             'duree_unite' => 'ans',
             'fichier_signe' => $fichier,
@@ -111,7 +111,7 @@ class AccordEnvoiSignatureTest extends TestCase
         $agent = User::factory()->create(['role' => 'agent']);
         $accord = Accord::factory()->create();
 
-        $this->actingAs($agent)->post("/accords/{$accord->id}/envoyer")->assertForbidden();
-        $this->actingAs($agent)->post("/accords/{$accord->id}/signer", ['duree_valeur' => 1, 'duree_unite' => 'ans'])->assertForbidden();
+        $this->actingAs($agent)->post(route('accords.envoyer', $accord))->assertForbidden();
+        $this->actingAs($agent)->post(route('accords.signer', $accord), ['duree_valeur' => 1, 'duree_unite' => 'ans'])->assertForbidden();
     }
 }

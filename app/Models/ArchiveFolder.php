@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class ArchiveFolder extends Model
 {
-    use HasFactory;
+    use HasFactory, HasHashedRouteKey;
 
     protected $fillable = [
         'user_id', 'parent_id', 'nom',

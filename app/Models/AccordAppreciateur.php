@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AccordAppreciateur extends Model
 {
-    use HasFactory;
+    use HasFactory, HasHashedRouteKey;
 
     protected $fillable = ['user_id', 'accorde_par'];
 

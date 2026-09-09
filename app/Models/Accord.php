@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -9,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Accord extends Model
 {
-    use HasFactory;
+    use HasFactory, HasHashedRouteKey;
 
     protected $fillable = [
         'titre', 'institution_partenaire', 'reference',

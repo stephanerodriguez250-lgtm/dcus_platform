@@ -230,7 +230,7 @@ class ArchivePartageStoreTest extends TestCase
         ]);
 
         $dossierCollecteur = ArchiveFolder::where('user_id', $destinataire->id)->where('nom', 'Partages reçus')->firstOrFail();
-        $response = $this->actingAs($destinataire)->get('/archives/'.$dossierCollecteur->id);
+        $response = $this->actingAs($destinataire)->get(route('archives.index', $dossierCollecteur));
 
         $response->assertOk();
         $response->assertSee('Convention UAC');
@@ -253,7 +253,7 @@ class ArchivePartageStoreTest extends TestCase
         ]);
         $copie = ArchiveFichier::where('user_id', $destinataire->id)->firstOrFail();
 
-        $this->actingAs($expediteur)->delete("/archives/fichiers/{$fichier->id}");
+        $this->actingAs($expediteur)->delete(route('archives.fichiers.destroy', $fichier));
 
         $this->assertDatabaseMissing('archive_fichiers', ['id' => $fichier->id]);
         $this->assertDatabaseHas('archive_fichiers', ['id' => $copie->id]);
@@ -275,7 +275,7 @@ class ArchivePartageStoreTest extends TestCase
         ]);
         $copie = ArchiveFichier::where('user_id', $destinataire->id)->firstOrFail();
 
-        $this->actingAs($destinataire)->delete("/archives/fichiers/{$copie->id}");
+        $this->actingAs($destinataire)->delete(route('archives.fichiers.destroy', $copie));
 
         $this->assertDatabaseMissing('archive_fichiers', ['id' => $copie->id]);
         $this->assertDatabaseHas('archive_fichiers', ['id' => $fichier->id]);

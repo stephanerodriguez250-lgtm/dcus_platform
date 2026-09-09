@@ -55,7 +55,7 @@ class ArchivePartageManagementTest extends TestCase
             'fichier_copie_id' => $copie->id,
         ]);
 
-        $response = $this->actingAs($expediteur)->delete("/archives/partages/{$partage->id}");
+        $response = $this->actingAs($expediteur)->delete(route('archives.partages.destroy', $partage));
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('archive_partages', ['id' => $partage->id]);
@@ -67,7 +67,7 @@ class ArchivePartageManagementTest extends TestCase
         $destinataire = User::factory()->create();
         $partage = ArchivePartage::factory()->create(['destinataire_id' => $destinataire->id]);
 
-        $response = $this->actingAs($destinataire)->delete("/archives/partages/{$partage->id}");
+        $response = $this->actingAs($destinataire)->delete(route('archives.partages.destroy', $partage));
 
         $response->assertForbidden();
         $this->assertDatabaseHas('archive_partages', ['id' => $partage->id]);
@@ -78,7 +78,7 @@ class ArchivePartageManagementTest extends TestCase
         $autre = User::factory()->create();
         $partage = ArchivePartage::factory()->create();
 
-        $response = $this->actingAs($autre)->delete("/archives/partages/{$partage->id}");
+        $response = $this->actingAs($autre)->delete(route('archives.partages.destroy', $partage));
 
         $response->assertForbidden();
     }

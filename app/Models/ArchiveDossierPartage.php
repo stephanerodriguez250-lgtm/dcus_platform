@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ArchiveDossierPartage extends Model
 {
-    use HasFactory;
+    use HasFactory, HasHashedRouteKey;
 
     protected $fillable = [
         'dossier_original_id', 'dossier_copie_id', 'zip_path', 'partage_par', 'destinataire_id', 'note',

@@ -97,7 +97,7 @@ class ArchiveFichierManagementTest extends TestCase
         $user = User::factory()->create();
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'intitule' => 'Ancien']);
 
-        $response = $this->actingAs($user)->patch("/archives/fichiers/{$fichier->id}", [
+        $response = $this->actingAs($user)->patch(route('archives.fichiers.update', $fichier), [
             'intitule' => 'Nouveau', 'numero' => 'X-1', 'description' => 'Maj',
         ]);
 
@@ -112,7 +112,7 @@ class ArchiveFichierManagementTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.pdf', 50, 'application/pdf')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'chemin_fichier' => $path, 'nom_fichier' => 'rapport.pdf']);
 
-        $response = $this->actingAs($user)->get("/archives/fichiers/{$fichier->id}/download");
+        $response = $this->actingAs($user)->get(route('archives.fichiers.download', $fichier));
 
         $response->assertOk();
     }
@@ -124,7 +124,7 @@ class ArchiveFichierManagementTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.pdf', 50, 'application/pdf')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'chemin_fichier' => $path]);
 
-        $response = $this->actingAs($user)->delete("/archives/fichiers/{$fichier->id}");
+        $response = $this->actingAs($user)->delete(route('archives.fichiers.destroy', $fichier));
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('archive_fichiers', ['id' => $fichier->id]);
@@ -139,8 +139,8 @@ class ArchiveFichierManagementTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.pdf', 50, 'application/pdf')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $owner->id, 'chemin_fichier' => $path]);
 
-        $this->actingAs($autre)->patch("/archives/fichiers/{$fichier->id}", ['intitule' => 'Piraté'])->assertForbidden();
-        $this->actingAs($autre)->delete("/archives/fichiers/{$fichier->id}")->assertForbidden();
-        $this->actingAs($autre)->get("/archives/fichiers/{$fichier->id}/download")->assertForbidden();
+        $this->actingAs($autre)->patch(route('archives.fichiers.update', $fichier), ['intitule' => 'Piraté'])->assertForbidden();
+        $this->actingAs($autre)->delete(route('archives.fichiers.destroy', $fichier))->assertForbidden();
+        $this->actingAs($autre)->get(route('archives.fichiers.download', $fichier))->assertForbidden();
     }
 }

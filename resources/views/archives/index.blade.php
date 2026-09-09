@@ -14,11 +14,11 @@
                     <a href="{{ route('archives.index') }}"><i class="bi bi-folder2-open me-1"></i>Racine</a>
                 </li>
                 @foreach($filAriane as $etape)
-                <li class="breadcrumb-item {{ $loop->last ? 'active' : 'drop-cible' }}" data-dossier-id="{{ $loop->last ? '' : $etape->id }}">
+                <li class="breadcrumb-item {{ $loop->last ? 'active' : 'drop-cible' }}" data-dossier-id="{{ $loop->last ? '' : $etape->getRouteKey() }}">
                     @if($loop->last)
                         {{ $etape->nom }}
                     @else
-                        <a href="{{ route('archives.index', ['dossier' => $etape->id]) }}">{{ $etape->nom }}</a>
+                        <a href="{{ route('archives.index', ['dossier' => $etape]) }}">{{ $etape->nom }}</a>
                     @endif
                 </li>
                 @endforeach
@@ -35,7 +35,7 @@
         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#partagerModal">
             <i class="bi bi-share me-2"></i>Partager
         </button>
-        <a href="{{ route('archives.fichiers.create', $dossier ? ['dossier' => $dossier->id] : []) }}" class="btn btn-primary">
+        <a href="{{ route('archives.fichiers.create', $dossier ? ['dossier' => $dossier] : []) }}" class="btn btn-primary">
             <i class="bi bi-file-earmark-plus me-2"></i>Ajouter un fichier
         </a>
     </div>
@@ -58,12 +58,12 @@
                 </thead>
                 <tbody>
                     @forelse($sousDossiers as $sousDossier)
-                    <tr class="drop-cible" draggable="true" data-type="dossier" data-id="{{ $sousDossier->id }}" data-dossier-id="{{ $sousDossier->id }}">
+                    <tr class="drop-cible" draggable="true" data-type="dossier" data-id="{{ $sousDossier->getRouteKey() }}" data-dossier-id="{{ $sousDossier->getRouteKey() }}">
                         <td class="ps-4">
                             <input type="checkbox" name="dossier_ids[]" value="{{ $sousDossier->id }}" form="partage-form">
                         </td>
                         <td>
-                            <a href="{{ route('archives.index', ['dossier' => $sousDossier->id]) }}" class="text-decoration-none">
+                            <a href="{{ route('archives.index', ['dossier' => $sousDossier]) }}" class="text-decoration-none">
                                 <i class="bi bi-folder-fill text-warning me-2"></i>{{ $sousDossier->nom }}
                             </a>
                         </td>
@@ -107,7 +107,7 @@
                     @endforelse
 
                     @forelse($fichiers as $fichier)
-                    <tr draggable="true" data-type="fichier" data-id="{{ $fichier->id }}">
+                    <tr draggable="true" data-type="fichier" data-id="{{ $fichier->getRouteKey() }}">
                         <td class="ps-4">
                             <input type="checkbox" name="fichier_ids[]" value="{{ $fichier->id }}" form="partage-form">
                         </td>
@@ -185,7 +185,7 @@
 <form id="partage-form" method="POST" action="{{ route('archives.partages.store') }}">
     @csrf
     @if($dossier)
-    <input type="hidden" name="retour_dossier_id" value="{{ $dossier->id }}">
+    <input type="hidden" name="retour_dossier_id" value="{{ $dossier->getRouteKey() }}">
     @endif
 </form>
 

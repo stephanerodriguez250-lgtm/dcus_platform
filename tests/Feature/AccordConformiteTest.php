@@ -30,7 +30,7 @@ class AccordConformiteTest extends TestCase
             ]);
         });
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/analyser-conformite");
+        $response = $this->actingAs($secretaire)->post(route('accords.analyser-conformite', $accord));
 
         $response->assertRedirect(route('accords.show', $accord));
         $rapport = $accord->fresh()->rapportConformite;
@@ -46,7 +46,7 @@ class AccordConformiteTest extends TestCase
         $agent = User::factory()->create(['role' => 'agent']);
         $accord = Accord::factory()->create();
 
-        $response = $this->actingAs($agent)->post("/accords/{$accord->id}/analyser-conformite");
+        $response = $this->actingAs($agent)->post(route('accords.analyser-conformite', $accord));
 
         $response->assertForbidden();
     }
@@ -57,7 +57,7 @@ class AccordConformiteTest extends TestCase
         $accord = Accord::factory()->create(['chemin_fichier_signe' => null]);
         AccordAppreciation::factory()->create(['accord_id' => $accord->id]);
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/analyser-conformite");
+        $response = $this->actingAs($secretaire)->post(route('accords.analyser-conformite', $accord));
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
@@ -75,10 +75,10 @@ class AccordConformiteTest extends TestCase
             $mock->shouldReceive('genererJson')->twice()->andReturn(['resume' => 'R1'], ['resume' => 'R2']);
         });
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/analyser-conformite");
+        $this->actingAs($secretaire)->post(route('accords.analyser-conformite', $accord));
         $ancienChemin = $accord->fresh()->rapportConformite->chemin_rapport_word;
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/analyser-conformite");
+        $this->actingAs($secretaire)->post(route('accords.analyser-conformite', $accord));
 
         $this->assertSame(1, AccordRapportConformite::where('accord_id', $accord->id)->count());
         $this->assertSame('R2', $accord->fresh()->rapportConformite->resume);
@@ -97,7 +97,7 @@ class AccordConformiteTest extends TestCase
             $mock->shouldReceive('genererJson')->once()->andReturn(['resume' => 'R']);
         });
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/analyser-conformite");
+        $this->actingAs($secretaire)->post(route('accords.analyser-conformite', $accord));
         $rapport = $accord->fresh()->rapportConformite;
 
         $response = $this->actingAs($secretaire)->get(route('accords.rapports-conformite.telecharger', $rapport));
@@ -118,7 +118,7 @@ class AccordConformiteTest extends TestCase
             $mock->shouldReceive('genererJson')->once()->andReturn(['resume' => 'R']);
         });
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/analyser-conformite");
+        $this->actingAs($secretaire)->post(route('accords.analyser-conformite', $accord));
         $rapport = $accord->fresh()->rapportConformite;
 
         $response = $this->actingAs($agent)->get(route('accords.rapports-conformite.telecharger', $rapport));

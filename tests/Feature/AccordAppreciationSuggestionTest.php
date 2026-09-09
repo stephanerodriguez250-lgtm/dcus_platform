@@ -25,7 +25,7 @@ class AccordAppreciationSuggestionTest extends TestCase
             ]);
         });
 
-        $response = $this->actingAs($secretaire)->postJson("/accords/{$accord->id}/apprecier/suggestion");
+        $response = $this->actingAs($secretaire)->postJson(route('accords.apprecier.suggestion', $accord));
 
         $response->assertOk();
         $response->assertJson(['origine' => 'UAC']);
@@ -36,7 +36,7 @@ class AccordAppreciationSuggestionTest extends TestCase
         $agent = User::factory()->create(['role' => 'agent']);
         $accord = Accord::factory()->create();
 
-        $response = $this->actingAs($agent)->postJson("/accords/{$accord->id}/apprecier/suggestion");
+        $response = $this->actingAs($agent)->postJson(route('accords.apprecier.suggestion', $accord));
 
         $response->assertForbidden();
     }
@@ -50,7 +50,7 @@ class AccordAppreciationSuggestionTest extends TestCase
             $mock->shouldReceive('genererJson')->once()->andThrow(new RuntimeException('Quota dépassé'));
         });
 
-        $response = $this->actingAs($secretaire)->postJson("/accords/{$accord->id}/apprecier/suggestion");
+        $response = $this->actingAs($secretaire)->postJson(route('accords.apprecier.suggestion', $accord));
 
         $response->assertStatus(422);
         $response->assertJson(['error' => 'La génération IA a échoué : Quota dépassé']);

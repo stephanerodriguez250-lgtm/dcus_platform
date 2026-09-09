@@ -92,7 +92,7 @@ class AccordReceptionTest extends TestCase
         $ancienChemin = UploadedFile::fake()->create('ancien.pdf', 100)->store('accords/fichiers', 'public');
         $accord = Accord::factory()->create(['chemin_fichier' => $ancienChemin, 'nom_fichier' => 'ancien.pdf']);
 
-        $response = $this->actingAs($secretaire)->put("/accords/{$accord->id}", [
+        $response = $this->actingAs($secretaire)->put(route('accords.update', $accord), [
             'titre' => $accord->titre,
             'institution_partenaire' => $accord->institution_partenaire,
             'reference' => $accord->reference,
@@ -115,7 +115,7 @@ class AccordReceptionTest extends TestCase
         $chemin = UploadedFile::fake()->create('accord.pdf', 100)->store('accords/fichiers', 'public');
         $accord = Accord::factory()->create(['chemin_fichier' => $chemin]);
 
-        $this->actingAs($secretaire)->delete("/accords/{$accord->id}");
+        $this->actingAs($secretaire)->delete(route('accords.destroy', $accord));
 
         Storage::disk('public')->assertMissing($chemin);
         $this->assertDatabaseMissing('accords', ['id' => $accord->id]);

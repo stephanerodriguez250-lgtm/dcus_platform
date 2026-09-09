@@ -27,7 +27,7 @@ class AccordAppreciateurManagementTest extends TestCase
         $admin = User::factory()->admin()->create();
         $appreciateur = AccordAppreciateur::factory()->create();
 
-        $response = $this->actingAs($admin)->delete("/accords/appreciateurs/{$appreciateur->id}");
+        $response = $this->actingAs($admin)->delete(route('accords.appreciateurs.destroy', $appreciateur));
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('accord_appreciateurs', ['id' => $appreciateur->id]);

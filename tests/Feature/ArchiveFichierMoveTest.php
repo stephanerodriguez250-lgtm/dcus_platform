@@ -18,8 +18,8 @@ class ArchiveFichierMoveTest extends TestCase
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id]);
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'folder_id' => null]);
 
-        $response = $this->actingAs($user)->patch("/archives/fichiers/{$fichier->id}/deplacer", [
-            'dossier_id' => $dossier->id,
+        $response = $this->actingAs($user)->patch(route('archives.fichiers.deplacer', $fichier), [
+            'dossier_id' => $dossier->getRouteKey(),
         ]);
 
         $response->assertRedirect();
@@ -32,7 +32,7 @@ class ArchiveFichierMoveTest extends TestCase
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id]);
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'folder_id' => $dossier->id]);
 
-        $response = $this->actingAs($user)->patch("/archives/fichiers/{$fichier->id}/deplacer", [
+        $response = $this->actingAs($user)->patch(route('archives.fichiers.deplacer', $fichier), [
             'dossier_id' => null,
         ]);
 
@@ -47,8 +47,8 @@ class ArchiveFichierMoveTest extends TestCase
         $dossier = ArchiveFolder::factory()->create(['user_id' => $autre->id]);
         $fichier = ArchiveFichier::factory()->create(['user_id' => $owner->id, 'folder_id' => null]);
 
-        $response = $this->actingAs($autre)->patch("/archives/fichiers/{$fichier->id}/deplacer", [
-            'dossier_id' => $dossier->id,
+        $response = $this->actingAs($autre)->patch(route('archives.fichiers.deplacer', $fichier), [
+            'dossier_id' => $dossier->getRouteKey(),
         ]);
 
         $response->assertForbidden();
@@ -62,8 +62,8 @@ class ArchiveFichierMoveTest extends TestCase
         $dossierDeLAutre = ArchiveFolder::factory()->create(['user_id' => $autre->id]);
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'folder_id' => null]);
 
-        $response = $this->actingAs($user)->patch("/archives/fichiers/{$fichier->id}/deplacer", [
-            'dossier_id' => $dossierDeLAutre->id,
+        $response = $this->actingAs($user)->patch(route('archives.fichiers.deplacer', $fichier), [
+            'dossier_id' => $dossierDeLAutre->getRouteKey(),
         ]);
 
         $response->assertForbidden();

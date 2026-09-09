@@ -149,7 +149,7 @@ class InvitationTest extends TestCase
         $admin = User::factory()->admin()->create();
         $invitation = UserInvitation::factory()->create();
 
-        $response = $this->actingAs($admin)->delete("/utilisateurs/invitations/{$invitation->id}");
+        $response = $this->actingAs($admin)->delete(route('utilisateurs.invitations.revoquer', $invitation));
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('user_invitations', ['id' => $invitation->id]);
@@ -163,7 +163,7 @@ class InvitationTest extends TestCase
         $invitation = UserInvitation::factory()->create(['email' => 'invite@dcus.bj']);
         $originalToken = $invitation->token;
 
-        $response = $this->actingAs($admin)->post("/utilisateurs/invitations/{$invitation->id}/renvoyer");
+        $response = $this->actingAs($admin)->post(route('utilisateurs.invitations.renvoyer', $invitation));
 
         $response->assertRedirect();
         $this->assertNotSame($originalToken, $invitation->fresh()->token);

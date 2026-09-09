@@ -37,8 +37,8 @@ class ResourceAuthorizationTest extends TestCase
         $agent = User::factory()->create(['role' => 'agent']);
         $accord = Accord::factory()->create(['created_by' => $creator->id]);
 
-        $this->actingAs($agent)->get("/accords/{$accord->id}")->assertOk();
-        $this->actingAs($agent)->get("/accords/{$accord->id}/edit")->assertForbidden();
+        $this->actingAs($agent)->get(route('accords.show', $accord))->assertOk();
+        $this->actingAs($agent)->get(route('accords.edit', $accord))->assertForbidden();
     }
 
     public function test_admin_can_administer_codir_reports_agent_cannot(): void
@@ -48,7 +48,7 @@ class ResourceAuthorizationTest extends TestCase
         $codir = Codir::factory()->create(['created_by' => $admin->id]);
 
         // secretaire peut gérer le CODIR (manage) mais pas administrer les rapports (admin only)
-        $response = $this->actingAs($secretaire)->post("/codirs/{$codir->id}/acces", [
+        $response = $this->actingAs($secretaire)->post(route('codirs.acces', $codir), [
             'user_id' => $secretaire->id,
             'action' => 'donner',
         ]);
@@ -62,7 +62,7 @@ class ResourceAuthorizationTest extends TestCase
         $agent = User::factory()->create(['role' => 'agent']);
         $codir = Codir::factory()->create(['created_by' => $admin->id]);
 
-        $response = $this->actingAs($agent)->get("/codirs/{$codir->id}/pdf");
+        $response = $this->actingAs($agent)->get(route('codirs.pdf', $codir));
 
         $response->assertForbidden();
     }
@@ -79,7 +79,7 @@ class ResourceAuthorizationTest extends TestCase
             'accorde_par' => $admin->id,
         ]);
 
-        $response = $this->actingAs($agent)->get("/codirs/{$codir->id}/pdf");
+        $response = $this->actingAs($agent)->get(route('codirs.pdf', $codir));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');

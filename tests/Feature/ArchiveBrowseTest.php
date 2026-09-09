@@ -57,7 +57,7 @@ class ArchiveBrowseTest extends TestCase
             'user_id' => $user->id, 'folder_id' => $enfant->id, 'intitule' => 'FichierEnfant',
         ]);
 
-        $response = $this->actingAs($user)->get("/archives/{$enfant->id}");
+        $response = $this->actingAs($user)->get(route('archives.index', $enfant));
 
         $response->assertOk();
         $response->assertSee('Racine');
@@ -71,7 +71,7 @@ class ArchiveBrowseTest extends TestCase
         $autre = User::factory()->create();
         $dossier = ArchiveFolder::factory()->create(['user_id' => $owner->id]);
 
-        $response = $this->actingAs($autre)->get("/archives/{$dossier->id}");
+        $response = $this->actingAs($autre)->get(route('archives.index', $dossier));
 
         $response->assertForbidden();
     }

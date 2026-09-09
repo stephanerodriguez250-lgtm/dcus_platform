@@ -72,7 +72,7 @@ class ArchiveFolderManagementTest extends TestCase
         $user = User::factory()->create();
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id, 'nom' => 'Ancien nom']);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$dossier->id}", ['nom' => 'Nouveau nom']);
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.update', $dossier), ['nom' => 'Nouveau nom']);
 
         $response->assertRedirect();
         $this->assertSame('Nouveau nom', $dossier->fresh()->nom);
@@ -84,7 +84,7 @@ class ArchiveFolderManagementTest extends TestCase
         $autre = User::factory()->create();
         $dossier = ArchiveFolder::factory()->create(['user_id' => $owner->id, 'nom' => 'Ancien nom']);
 
-        $response = $this->actingAs($autre)->patch("/archives/dossiers/{$dossier->id}", ['nom' => 'Piraté']);
+        $response = $this->actingAs($autre)->patch(route('archives.dossiers.update', $dossier), ['nom' => 'Piraté']);
 
         $response->assertForbidden();
         $this->assertSame('Ancien nom', $dossier->fresh()->nom);
@@ -104,7 +104,7 @@ class ArchiveFolderManagementTest extends TestCase
             'user_id' => $user->id, 'folder_id' => $enfant->id, 'chemin_fichier' => $path,
         ]);
 
-        $response = $this->actingAs($user)->delete("/archives/dossiers/{$racine->id}");
+        $response = $this->actingAs($user)->delete(route('archives.dossiers.destroy', $racine));
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('archive_folders', ['id' => $racine->id]);
@@ -119,7 +119,7 @@ class ArchiveFolderManagementTest extends TestCase
         $autre = User::factory()->create();
         $dossier = ArchiveFolder::factory()->create(['user_id' => $owner->id]);
 
-        $response = $this->actingAs($autre)->delete("/archives/dossiers/{$dossier->id}");
+        $response = $this->actingAs($autre)->delete(route('archives.dossiers.destroy', $dossier));
 
         $response->assertForbidden();
         $this->assertDatabaseHas('archive_folders', ['id' => $dossier->id]);

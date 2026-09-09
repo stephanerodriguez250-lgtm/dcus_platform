@@ -134,7 +134,7 @@ class ArchiveDossierPartageTest extends TestCase
         ]);
         $partage = ArchiveDossierPartage::first();
 
-        $response = $this->actingAs($destinataire)->get("/archives/dossier-partages/{$partage->id}/telecharger");
+        $response = $this->actingAs($destinataire)->get(route('archives.dossier-partages.telecharger', $partage));
 
         $response->assertOk();
     }
@@ -155,8 +155,8 @@ class ArchiveDossierPartageTest extends TestCase
         ]);
         $partage = ArchiveDossierPartage::first();
 
-        $this->actingAs($expediteur)->get("/archives/dossier-partages/{$partage->id}/telecharger")->assertForbidden();
-        $this->actingAs($autre)->get("/archives/dossier-partages/{$partage->id}/telecharger")->assertForbidden();
+        $this->actingAs($expediteur)->get(route('archives.dossier-partages.telecharger', $partage))->assertForbidden();
+        $this->actingAs($autre)->get(route('archives.dossier-partages.telecharger', $partage))->assertForbidden();
     }
 
     public function test_sender_can_revoke_a_folder_share_without_affecting_the_recipients_copy(): void
@@ -176,7 +176,7 @@ class ArchiveDossierPartageTest extends TestCase
         $zipPath = $partage->zip_path;
         $copieId = $partage->dossier_copie_id;
 
-        $response = $this->actingAs($expediteur)->delete("/archives/dossier-partages/{$partage->id}");
+        $response = $this->actingAs($expediteur)->delete(route('archives.dossier-partages.destroy', $partage));
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('archive_dossier_partages', ['id' => $partage->id]);
@@ -199,7 +199,7 @@ class ArchiveDossierPartageTest extends TestCase
         ]);
         $partage = ArchiveDossierPartage::first();
 
-        $response = $this->actingAs($destinataire)->delete("/archives/dossier-partages/{$partage->id}");
+        $response = $this->actingAs($destinataire)->delete(route('archives.dossier-partages.destroy', $partage));
 
         $response->assertForbidden();
         $this->assertDatabaseHas('archive_dossier_partages', ['id' => $partage->id]);

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Model;
 
 class CodirRapport extends Model
 {
+    use HasHashedRouteKey;
+
     protected $fillable = [
         'codir_id', 'nom_fichier', 'chemin_fichier',
         'type_fichier', 'taille', 'uploaded_by',

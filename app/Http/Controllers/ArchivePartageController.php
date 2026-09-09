@@ -84,7 +84,10 @@ class ArchivePartageController extends Controller
                     }
                 },
             ],
-            'retour_dossier_id' => 'nullable|exists:archive_folders,id',
+            // Un hash de dossier (voir Accord::getRouteKey()/App\Support\IdHasher), pas un ID
+            // brut : il est simplement retransmis tel quel dans le redirect() ci-dessous, sans
+            // être décodé — c'est la route de destination qui le décodera à son tour.
+            'retour_dossier_id' => 'nullable|string',
             'note' => 'nullable|string|max:1000',
         ]);
 

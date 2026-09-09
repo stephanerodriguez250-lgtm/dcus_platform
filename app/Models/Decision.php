@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasHashedRouteKey;
 use Illuminate\Database\Eloquent\Model;
 
 class Decision extends Model
 {
+    use HasHashedRouteKey;
+
     protected $fillable = [
         'codir_id', 'reunion_id',
         'source_type',

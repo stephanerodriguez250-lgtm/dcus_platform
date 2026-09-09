@@ -69,7 +69,7 @@
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-check-lg me-2"></i>Enregistrer
                         </button>
-                        <a href="{{ route('archives.index', $dossier ? ['dossier' => $dossier->id] : []) }}" class="btn btn-outline-secondary px-4">
+                        <a href="{{ route('archives.index', $dossier ? ['dossier' => $dossier] : []) }}" class="btn btn-outline-secondary px-4">
                             Annuler
                         </a>
                     </div>

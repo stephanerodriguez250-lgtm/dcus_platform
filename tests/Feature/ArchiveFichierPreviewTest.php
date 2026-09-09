@@ -20,7 +20,7 @@ class ArchiveFichierPreviewTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.pdf', 50, 'application/pdf')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'chemin_fichier' => $path]);
 
-        $response = $this->actingAs($user)->get("/archives/fichiers/{$fichier->id}/apercu");
+        $response = $this->actingAs($user)->get(route('archives.fichiers.apercu', $fichier));
 
         $response->assertOk();
         $response->assertHeader('content-disposition');
@@ -35,7 +35,7 @@ class ArchiveFichierPreviewTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.pdf', 50, 'application/pdf')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $owner->id, 'chemin_fichier' => $path]);
 
-        $response = $this->actingAs($autre)->get("/archives/fichiers/{$fichier->id}/apercu");
+        $response = $this->actingAs($autre)->get(route('archives.fichiers.apercu', $fichier));
 
         $response->assertForbidden();
     }
@@ -58,7 +58,7 @@ class ArchiveFichierPreviewTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.pdf', 50, 'application/pdf')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'chemin_fichier' => $path, 'type_fichier' => 'pdf']);
 
-        $response = $this->actingAs($user)->get("/archives/fichiers/{$fichier->id}/apercu");
+        $response = $this->actingAs($user)->get(route('archives.fichiers.apercu', $fichier));
 
         $response->assertOk();
         $this->assertStringStartsWith('application/pdf', $response->headers->get('content-type'));
@@ -72,7 +72,7 @@ class ArchiveFichierPreviewTest extends TestCase
         $path = UploadedFile::fake()->image('photo.jpg')->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'chemin_fichier' => $path, 'type_fichier' => 'jpg']);
 
-        $response = $this->actingAs($user)->get("/archives/fichiers/{$fichier->id}/apercu");
+        $response = $this->actingAs($user)->get(route('archives.fichiers.apercu', $fichier));
 
         $response->assertOk();
         $this->assertStringStartsWith('image/jpeg', $response->headers->get('content-type'));
@@ -86,7 +86,7 @@ class ArchiveFichierPreviewTest extends TestCase
         $path = UploadedFile::fake()->create('rapport.docx', 50)->store('archives/fichiers', 'public');
         $fichier = ArchiveFichier::factory()->create(['user_id' => $user->id, 'chemin_fichier' => $path, 'type_fichier' => 'docx']);
 
-        $response = $this->actingAs($user)->get("/archives/fichiers/{$fichier->id}/apercu");
+        $response = $this->actingAs($user)->get(route('archives.fichiers.apercu', $fichier));
 
         $response->assertOk();
         $this->assertStringContainsString('attachment', $response->headers->get('content-disposition'));

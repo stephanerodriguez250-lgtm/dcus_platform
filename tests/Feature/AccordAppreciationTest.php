@@ -20,7 +20,7 @@ class AccordAppreciationTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create();
 
-        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/apprecier", [
+        $response = $this->actingAs($secretaire)->post(route('accords.apprecier.store', $accord), [
             'origine' => 'Ministère de tutelle',
             'objet' => 'Coopération scientifique',
             'avis' => 'Favorable sous réserve de corrections mineures.',
@@ -43,7 +43,7 @@ class AccordAppreciationTest extends TestCase
         $agent = User::factory()->create(['role' => 'agent']);
         $accord = Accord::factory()->create();
 
-        $response = $this->actingAs($agent)->get("/accords/{$accord->id}/apprecier");
+        $response = $this->actingAs($agent)->get(route('accords.apprecier.create', $accord));
 
         $response->assertForbidden();
     }
@@ -55,7 +55,7 @@ class AccordAppreciationTest extends TestCase
         AccordAppreciateur::factory()->create(['user_id' => $agent->id]);
         $accord = Accord::factory()->create();
 
-        $response = $this->actingAs($agent)->post("/accords/{$accord->id}/apprecier", [
+        $response = $this->actingAs($agent)->post(route('accords.apprecier.store', $accord), [
             'origine' => 'X', 'objet' => 'Y', 'avis' => 'Z',
         ]);
 
@@ -69,12 +69,12 @@ class AccordAppreciationTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create();
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/apprecier", [
+        $this->actingAs($secretaire)->post(route('accords.apprecier.store', $accord), [
             'origine' => 'A', 'objet' => 'B', 'avis' => 'C',
         ]);
         $ancienChemin = $accord->fresh()->appreciation->chemin_fiche_word;
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/apprecier", [
+        $this->actingAs($secretaire)->post(route('accords.apprecier.store', $accord), [
             'origine' => 'A2', 'objet' => 'B2', 'avis' => 'C2',
         ]);
 
@@ -90,7 +90,7 @@ class AccordAppreciationTest extends TestCase
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create();
 
-        $this->actingAs($secretaire)->post("/accords/{$accord->id}/apprecier", [
+        $this->actingAs($secretaire)->post(route('accords.apprecier.store', $accord), [
             'origine' => 'A', 'objet' => 'B', 'avis' => 'C',
         ]);
         $appreciation = $accord->fresh()->appreciation;

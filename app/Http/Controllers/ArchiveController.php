@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ArchiveFichier;
 use App\Models\ArchiveFolder;
 use App\Models\User;
+use App\Support\IdHasher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -55,7 +56,7 @@ class ArchiveController extends Controller
             'nom' => $validated['nom'],
         ]);
 
-        return redirect()->route('archives.index', $parent ? ['dossier' => $parent->id] : [])
+        return redirect()->route('archives.index', $parent ? ['dossier' => $parent] : [])
             ->with('success', 'Dossier créé.');
     }
 
@@ -73,7 +74,7 @@ class ArchiveController extends Controller
 
         $dossier->update(['nom' => $validated['nom']]);
 
-        return redirect()->route('archives.index', $dossier->parent_id ? ['dossier' => $dossier->parent_id] : [])
+        return redirect()->route('archives.index', $dossier->parent ? ['dossier' => $dossier->parent] : [])
             ->with('success', 'Dossier renommé.');
     }
 
@@ -85,10 +86,10 @@ class ArchiveController extends Controller
             Storage::disk('public')->delete($fichier->chemin_fichier);
         }
 
-        $parentId = $dossier->parent_id;
+        $parent = $dossier->parent;
         $dossier->delete();
 
-        return redirect()->route('archives.index', $parentId ? ['dossier' => $parentId] : [])
+        return redirect()->route('archives.index', $parent ? ['dossier' => $parent] : [])
             ->with('success', 'Dossier supprimé.');
     }
 
@@ -96,13 +97,18 @@ class ArchiveController extends Controller
     {
         $this->authorize('update', $dossier);
 
+        // Envoyé par le JS de glisser-déposer avec l'ID haché du dossier cible (voir
+        // data-dossier-id dans archives/index.blade.php) — pas un ID brut, donc pas de règle
+        // "exists:...,id" possible ici : on décode nous-mêmes avant de chercher le dossier.
         $validated = $request->validate([
-            'parent_id' => 'nullable|exists:archive_folders,id',
+            'parent_id' => 'nullable|string',
         ]);
 
         $dossierCible = null;
         if ($validated['parent_id'] ?? null) {
-            $dossierCible = ArchiveFolder::findOrFail($validated['parent_id']);
+            $idCible = IdHasher::decoder($validated['parent_id']);
+            abort_if($idCible === null, 404);
+            $dossierCible = ArchiveFolder::findOrFail($idCible);
             $this->authorize('view', $dossierCible);
 
             if ($dossierCible->id === $dossier->id || $dossier->descendantsRecursifs()->contains('id', $dossierCible->id)) {
@@ -114,10 +120,10 @@ class ArchiveController extends Controller
             return back()->with('error', 'Un dossier porte déjà ce nom à cet emplacement.');
         }
 
-        $dossierDepart = $dossier->parent_id;
+        $ancienParent = $dossier->parent;
         $dossier->update(['parent_id' => $dossierCible?->id]);
 
-        return redirect()->route('archives.index', $dossierDepart ? ['dossier' => $dossierDepart] : [])
+        return redirect()->route('archives.index', $ancienParent ? ['dossier' => $ancienParent] : [])
             ->with('success', 'Dossier déplacé.');
     }
 
@@ -134,9 +140,14 @@ class ArchiveController extends Controller
 
     public function createFichier(Request $request)
     {
+        // Le "?dossier=" ici est un simple paramètre de requête (pas de segment {dossier}
+        // dans cette route), donc le binding implicite de route ne s'applique pas : il faut
+        // décoder le hash nous-mêmes, comme le fait resolveRouteBinding() pour les autres routes.
         $dossier = null;
         if ($request->query('dossier')) {
-            $dossier = ArchiveFolder::findOrFail($request->query('dossier'));
+            $id = IdHasher::decoder((string) $request->query('dossier'));
+            abort_if($id === null, 404);
+            $dossier = ArchiveFolder::findOrFail($id);
             $this->authorize('view', $dossier);
         }
 
@@ -174,7 +185,7 @@ class ArchiveController extends Controller
             'taille' => $file->getSize(),
         ]);
 
-        return redirect()->route('archives.index', $dossier ? ['dossier' => $dossier->id] : [])
+        return redirect()->route('archives.index', $dossier ? ['dossier' => $dossier] : [])
             ->with('success', 'Fichier ajouté.');
     }
 
@@ -190,7 +201,7 @@ class ArchiveController extends Controller
 
         $fichier->update($validated);
 
-        return redirect()->route('archives.index', $fichier->folder_id ? ['dossier' => $fichier->folder_id] : [])
+        return redirect()->route('archives.index', $fichier->dossier ? ['dossier' => $fichier->dossier] : [])
             ->with('success', 'Fichier modifié.');
     }
 
@@ -199,10 +210,10 @@ class ArchiveController extends Controller
         $this->authorize('delete', $fichier);
 
         Storage::disk('public')->delete($fichier->chemin_fichier);
-        $folderId = $fichier->folder_id;
+        $dossier = $fichier->dossier;
         $fichier->delete();
 
-        return redirect()->route('archives.index', $folderId ? ['dossier' => $folderId] : [])
+        return redirect()->route('archives.index', $dossier ? ['dossier' => $dossier] : [])
             ->with('success', 'Fichier supprimé.');
     }
 
@@ -210,20 +221,23 @@ class ArchiveController extends Controller
     {
         $this->authorize('update', $fichier);
 
+        // Même chose que deplacerDossier() : un ID de dossier haché, pas brut.
         $validated = $request->validate([
-            'dossier_id' => 'nullable|exists:archive_folders,id',
+            'dossier_id' => 'nullable|string',
         ]);
 
         $dossierCible = null;
         if ($validated['dossier_id'] ?? null) {
-            $dossierCible = ArchiveFolder::findOrFail($validated['dossier_id']);
+            $idCible = IdHasher::decoder($validated['dossier_id']);
+            abort_if($idCible === null, 404);
+            $dossierCible = ArchiveFolder::findOrFail($idCible);
             $this->authorize('view', $dossierCible);
         }
 
-        $dossierDepart = $fichier->folder_id;
+        $ancienDossier = $fichier->dossier;
         $fichier->update(['folder_id' => $dossierCible?->id]);
 
-        return redirect()->route('archives.index', $dossierDepart ? ['dossier' => $dossierDepart] : [])
+        return redirect()->route('archives.index', $ancienDossier ? ['dossier' => $ancienDossier] : [])
             ->with('success', 'Fichier déplacé.');
     }
 

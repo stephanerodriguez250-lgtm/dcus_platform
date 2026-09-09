@@ -17,8 +17,8 @@ class ArchiveDossierMoveTest extends TestCase
         $cible = ArchiveFolder::factory()->create(['user_id' => $user->id, 'nom' => 'Cible']);
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id, 'nom' => 'Deplace']);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$dossier->id}/deplacer", [
-            'parent_id' => $cible->id,
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.deplacer', $dossier), [
+            'parent_id' => $cible->getRouteKey(),
         ]);
 
         $response->assertRedirect();
@@ -31,7 +31,7 @@ class ArchiveDossierMoveTest extends TestCase
         $parent = ArchiveFolder::factory()->create(['user_id' => $user->id]);
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id, 'parent_id' => $parent->id]);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$dossier->id}/deplacer", [
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.deplacer', $dossier), [
             'parent_id' => null,
         ]);
 
@@ -44,8 +44,8 @@ class ArchiveDossierMoveTest extends TestCase
         $user = User::factory()->create();
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$dossier->id}/deplacer", [
-            'parent_id' => $dossier->id,
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.deplacer', $dossier), [
+            'parent_id' => $dossier->getRouteKey(),
         ]);
 
         $response->assertRedirect();
@@ -58,8 +58,8 @@ class ArchiveDossierMoveTest extends TestCase
         $racine = ArchiveFolder::factory()->create(['user_id' => $user->id]);
         $enfant = ArchiveFolder::factory()->create(['user_id' => $user->id, 'parent_id' => $racine->id]);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$racine->id}/deplacer", [
-            'parent_id' => $enfant->id,
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.deplacer', $racine), [
+            'parent_id' => $enfant->getRouteKey(),
         ]);
 
         $response->assertRedirect();
@@ -73,8 +73,8 @@ class ArchiveDossierMoveTest extends TestCase
         $cible = ArchiveFolder::factory()->create(['user_id' => $autre->id]);
         $dossier = ArchiveFolder::factory()->create(['user_id' => $owner->id]);
 
-        $response = $this->actingAs($autre)->patch("/archives/dossiers/{$dossier->id}/deplacer", [
-            'parent_id' => $cible->id,
+        $response = $this->actingAs($autre)->patch(route('archives.dossiers.deplacer', $dossier), [
+            'parent_id' => $cible->getRouteKey(),
         ]);
 
         $response->assertForbidden();
@@ -88,8 +88,8 @@ class ArchiveDossierMoveTest extends TestCase
         $dossierDeLAutre = ArchiveFolder::factory()->create(['user_id' => $autre->id]);
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$dossier->id}/deplacer", [
-            'parent_id' => $dossierDeLAutre->id,
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.deplacer', $dossier), [
+            'parent_id' => $dossierDeLAutre->getRouteKey(),
         ]);
 
         $response->assertForbidden();
@@ -103,8 +103,8 @@ class ArchiveDossierMoveTest extends TestCase
         ArchiveFolder::factory()->create(['user_id' => $user->id, 'parent_id' => $cible->id, 'nom' => 'Conflit']);
         $dossier = ArchiveFolder::factory()->create(['user_id' => $user->id, 'nom' => 'Conflit']);
 
-        $response = $this->actingAs($user)->patch("/archives/dossiers/{$dossier->id}/deplacer", [
-            'parent_id' => $cible->id,
+        $response = $this->actingAs($user)->patch(route('archives.dossiers.deplacer', $dossier), [
+            'parent_id' => $cible->getRouteKey(),
         ]);
 
         $response->assertRedirect();
