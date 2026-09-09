@@ -87,10 +87,47 @@ class GeminiClientTest extends TestCase
             'generativelanguage.googleapis.com/*' => Http::response(['error' => 'quota dépassé'], 429),
         ]);
 
-        $client = new GeminiClient('fake-key', 'gemini-2.0-flash');
+        $client = new GeminiClient('fake-key', 'gemini-2.0-flash', delaiEntreTentativesMs: 0);
 
         $this->expectException(RuntimeException::class);
 
-        $client->genererJson('Analyse.');
+        try {
+            $client->genererJson('Analyse.');
+        } finally {
+            // Une erreur non-503 ne doit jamais être retentée.
+            Http::assertSentCount(1);
+        }
+    }
+
+    public function test_genererjson_reessaie_automatiquement_apres_une_erreur_503_puis_reussit(): void
+    {
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::sequence()
+                ->push(['error' => ['code' => 503, 'message' => 'Surcharge', 'status' => 'UNAVAILABLE']], 503)
+                ->push(['candidates' => [['content' => ['parts' => [['text' => '{"origine":"UAC"}']]]]]], 200),
+        ]);
+
+        $client = new GeminiClient('fake-key', 'gemini-2.0-flash', delaiEntreTentativesMs: 0);
+        $resultat = $client->genererJson('Analyse.');
+
+        $this->assertSame(['origine' => 'UAC'], $resultat);
+        Http::assertSentCount(2);
+    }
+
+    public function test_genererjson_abandonne_apres_plusieurs_erreurs_503_consecutives(): void
+    {
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response(['error' => ['code' => 503, 'status' => 'UNAVAILABLE']], 503),
+        ]);
+
+        $client = new GeminiClient('fake-key', 'gemini-2.0-flash', delaiEntreTentativesMs: 0);
+
+        $this->expectException(RuntimeException::class);
+
+        try {
+            $client->genererJson('Analyse.');
+        } finally {
+            Http::assertSentCount(3);
+        }
     }
 }

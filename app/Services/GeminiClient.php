@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -12,14 +13,19 @@ use RuntimeException;
  */
 class GeminiClient
 {
+    private const TENTATIVES_MAX = 3;
+
     private string $apiKey;
 
     private string $model;
 
-    public function __construct(?string $apiKey = null, ?string $model = null)
+    private int $delaiEntreTentativesMs;
+
+    public function __construct(?string $apiKey = null, ?string $model = null, int $delaiEntreTentativesMs = 1000)
     {
         $this->apiKey = $apiKey ?? (string) config('services.gemini.key');
         $this->model = $model ?? (string) config('services.gemini.model');
+        $this->delaiEntreTentativesMs = $delaiEntreTentativesMs;
     }
 
     /**
@@ -32,13 +38,14 @@ class GeminiClient
             throw new RuntimeException('Aucune clé API Gemini configurée (GEMINI_API_KEY).');
         }
 
-        // Le délai HTTP ci-dessous (Http::timeout(60)) doit toujours pouvoir expirer AVANT la
-        // limite globale de PHP (max_execution_time, 30s par défaut) : sinon PHP tue le script
-        // en pleine requête cURL par une erreur fatale non interceptable (pas un Throwable
-        // normal), au lieu de laisser Guzzle lever une exception propre que notre appelant peut
-        // attraper et afficher proprement. Un appel Gemini avec pièce jointe (analyse d'un PDF)
-        // peut légitimement dépasser 30s.
-        set_time_limit(75);
+        // Le délai HTTP ci-dessous (Http::timeout(60), jusqu'à self::TENTATIVES_MAX fois) doit
+        // toujours pouvoir expirer AVANT la limite globale de PHP (max_execution_time, 30s par
+        // défaut) : sinon PHP tue le script en pleine requête cURL par une erreur fatale non
+        // interceptable (pas un Throwable normal), au lieu de laisser Guzzle lever une exception
+        // propre que notre appelant peut attraper et afficher proprement. Un appel Gemini avec
+        // pièce jointe (analyse d'un PDF) peut légitimement dépasser 30s, et une nouvelle
+        // tentative après un 503 peut cumuler plusieurs de ces appels.
+        set_time_limit(200);
 
         $parts = [['text' => $prompt]];
 
@@ -51,13 +58,7 @@ class GeminiClient
             ];
         }
 
-        $reponse = Http::timeout(60)->post(
-            "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}",
-            [
-                'contents' => [['parts' => $parts]],
-                'generationConfig' => ['response_mime_type' => 'application/json'],
-            ]
-        );
+        $reponse = $this->appellerAvecNouvellesTentatives($parts);
 
         if ($reponse->failed()) {
             throw new RuntimeException('Échec de l\'appel à Gemini : '.$reponse->body());
@@ -76,5 +77,33 @@ class GeminiClient
         }
 
         return $donnees;
+    }
+
+    /**
+     * Le palier gratuit de Gemini renvoie parfois une erreur 503 ("modèle actuellement en forte
+     * demande") purement transitoire — on retente automatiquement quelques fois avant
+     * d'abandonner, plutôt que de faire échouer la génération dès la première surcharge.
+     * Toute autre erreur (clé invalide, quota, 4xx...) n'est jamais retentée.
+     */
+    private function appellerAvecNouvellesTentatives(array $parts): Response
+    {
+        $tentative = 1;
+
+        while (true) {
+            $reponse = Http::timeout(60)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}",
+                [
+                    'contents' => [['parts' => $parts]],
+                    'generationConfig' => ['response_mime_type' => 'application/json'],
+                ]
+            );
+
+            if ($reponse->successful() || $reponse->status() !== 503 || $tentative >= self::TENTATIVES_MAX) {
+                return $reponse;
+            }
+
+            usleep($this->delaiEntreTentativesMs * 1000);
+            $tentative++;
+        }
     }
 }
