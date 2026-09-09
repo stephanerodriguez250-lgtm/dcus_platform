@@ -5,11 +5,11 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-9">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header py-3 d-flex align-items-center gap-2">
                 <i class="bi bi-file-earmark-plus text-primary"></i>
-                <span>Enregistrer un nouvel accord</span>
+                <span>Réception d'un accord</span>
             </div>
             <div class="card-body p-4">
 
@@ -23,117 +23,60 @@
                 </div>
                 @endif
 
-                <form method="POST" action="{{ route('accords.store') }}">
+                <form method="POST" action="{{ route('accords.store') }}" enctype="multipart/form-data">
                     @csrf
 
-                    <!-- Section 1 : Identification -->
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Identification de l'accord
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Intitulé de l'accord <span class="text-danger">*</span></label>
-                                <input type="text" name="titre"
-                                       class="form-control @error('titre') is-invalid @enderror"
-                                       value="{{ old('titre') }}"
-                                       placeholder="Ex: Accord de coopération en matière de recherche scientifique">
-                                @error('titre')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Intitulé de l'accord <span class="text-danger">*</span></label>
+                            <input type="text" name="titre"
+                                   class="form-control @error('titre') is-invalid @enderror"
+                                   value="{{ old('titre') }}"
+                                   placeholder="Ex: Accord-cadre de partenariat entre l'UAC et le Port Autonome de Cotonou">
+                            @error('titre')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">Commencez par « Accord... » et citez les deux parties (ex: « Accord-cadre entre X et Y ») — ce texte est repris tel quel dans le titre de la fiche d'appréciation.</div>
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Pays partenaire <span class="text-danger">*</span></label>
-                                <input type="text" name="pays_partenaire"
-                                       class="form-control @error('pays_partenaire') is-invalid @enderror"
-                                       value="{{ old('pays_partenaire') }}"
-                                       placeholder="Ex: France, Canada, Maroc...">
-                                @error('pays_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Université / Institution partenaire <span class="text-danger">*</span></label>
+                            <input type="text" name="institution_partenaire"
+                                   class="form-control @error('institution_partenaire') is-invalid @enderror"
+                                   value="{{ old('institution_partenaire') }}"
+                                   placeholder="Ex: Université Paris-Saclay, UAC...">
+                            @error('institution_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Institution partenaire <span class="text-danger">*</span></label>
-                                <input type="text" name="institution_partenaire"
-                                       class="form-control @error('institution_partenaire') is-invalid @enderror"
-                                       value="{{ old('institution_partenaire') }}"
-                                       placeholder="Ex: Université Paris-Saclay, Ministère...">
-                                @error('institution_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Référence MESRS <span class="text-danger">*</span></label>
+                            <input type="text" name="reference"
+                                   class="form-control @error('reference') is-invalid @enderror"
+                                   value="{{ old('reference') }}"
+                                   placeholder="Ex: MESRS-2026/0142">
+                            @error('reference')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Université béninoise bénéficiaire</label>
-                                <input type="text" name="universite_beneficiaire"
-                                       class="form-control"
-                                       value="{{ old('universite_beneficiaire') }}"
-                                       placeholder="Ex: UAC, UNSTIM, EPAC...">
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date d'arrivée</label>
+                            <input type="date" name="date_arrivee" class="form-control" value="{{ old('date_arrivee') }}">
+                            <div class="form-text">Laissez vide pour utiliser la date du jour.</div>
+                        </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Statut initial <span class="text-danger">*</span></label>
-                                <select name="statut" class="form-select @error('statut') is-invalid @enderror">
-                                    @foreach($statuts as $key => $label)
-                                        <option value="{{ $key }}" {{ old('statut', 'identifie') == $key ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('statut')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Heure d'arrivée</label>
+                            <input type="time" name="heure_arrivee" class="form-control" value="{{ old('heure_arrivee') }}">
+                            <div class="form-text">Laissez vide pour utiliser l'heure actuelle.</div>
+                        </div>
 
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Description / Objectifs</label>
-                                <textarea name="description" rows="4" class="form-control"
-                                          placeholder="Décrivez les objectifs et le contenu de cet accord...">{{ old('description') }}</textarea>
-                            </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Fichier de l'accord <span class="text-danger">*</span></label>
+                            <input type="file" name="fichier"
+                                   class="form-control @error('fichier') is-invalid @enderror" accept=".pdf,.doc,.docx">
+                            @error('fichier')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">PDF, DOC ou DOCX — 20 Mo maximum.</div>
                         </div>
                     </div>
 
-                    <!-- Section 2 : Dates -->
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-                            <i class="bi bi-calendar3 me-2"></i>Dates clés
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date d'identification</label>
-                                <input type="date" name="date_identification" class="form-control"
-                                       value="{{ old('date_identification') }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date de signature</label>
-                                <input type="date" name="date_signature" class="form-control"
-                                       value="{{ old('date_signature') }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Date d'expiration</label>
-                                <input type="date" name="date_expiration" class="form-control"
-                                       value="{{ old('date_expiration') }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 3 : Réunion d'origine -->
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
-                            <i class="bi bi-calendar-event me-2"></i>Réunion d'origine
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Lier à une réunion</label>
-                                <select name="reunion_id" class="form-select">
-                                    <option value="">— Aucune réunion liée —</option>
-                                    @foreach($reunions as $reunion)
-                                        <option value="{{ $reunion->id }}"
-                                            {{ old('reunion_id', $reunion_id) == $reunion->id ? 'selected' : '' }}>
-                                            {{ $reunion->date->format('d/m/Y') }} — {{ $reunion->titre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text">Optionnel — indiquez la réunion lors de laquelle cet accord a été identifié.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2 mt-2">
+                    <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-check-lg me-2"></i>Enregistrer l'accord
                         </button>
