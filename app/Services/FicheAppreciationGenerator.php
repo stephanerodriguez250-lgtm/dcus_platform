@@ -3,17 +3,21 @@
 namespace App\Services;
 
 use App\Models\AccordAppreciation;
+use App\Services\Concerns\RendDesParagraphesAvecPuces;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\Element\Section;
+use PhpOffice\PhpWord\Element\Table;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\SimpleType\Jc;
+use PhpOffice\PhpWord\Style\Tab;
 
 /**
  * Génère la fiche d'appréciation au format .docx, reproduisant la mise en forme
- * officielle des fiches DCUS (en-tête ministériel, blocs Origine/Objet/Référence/
- * Destinataire, sections "Observations sur la forme"/"sur le fond", conclusion encadrée).
+ * officielle des fiches DCUS : en-tête ministériel (armoiries + texte, sans tableau),
+ * puis un unique tableau bordé regroupant Origine/Objet/Référence/Destinataire,
+ * Observations sur la forme/le fond et Conclusion — chaque champ sur sa propre ligne.
  *
  * Le numéro d'avis ("Avis N°.../MESRS/DCUS/{année}") est laissé vide sur le document
  * généré : comme sur les fiches papier, il est attribué et complété à la main par la
@@ -23,6 +27,10 @@ use PhpOffice\PhpWord\SimpleType\Jc;
  */
 class FicheAppreciationGenerator
 {
+    use RendDesParagraphesAvecPuces;
+
+    private const LARGEUR_CONTENU = 9350;
+
     public function generer(AccordAppreciation $appreciation): string
     {
         $accord = $appreciation->accord;
@@ -55,32 +63,21 @@ class FicheAppreciationGenerator
         );
         $section->addTextBreak(1);
 
-        $reference = $accord->reference.' du '.$accord->date_arrivee->locale('fr')->translatedFormat('d F Y');
-
-        $this->ajouterChampEncadre($section, 'Origine', $appreciation->origine);
-        $this->ajouterChampEncadre($section, 'Objet', $appreciation->objet);
-        $this->ajouterChampEncadre($section, 'Référence', $reference);
-        $this->ajouterChampEncadre($section, 'Destinataire', $appreciation->origine);
-
-        $section->addTextBreak(1);
         $section->addText(
             "Dans le cadre de l'objet suscité, la DCUS a procédé à une analyse minutieuse du projet et y a relevé les éléments d'appréciation ci-après :"
         );
         $section->addTextBreak(1);
 
-        $section->addText('1°) Observations sur la forme', ['bold' => true]);
-        $this->ajouterParagraphes($section, $appreciation->observations_forme);
-        $section->addTextBreak(1);
+        $reference = $accord->reference.' du '.$accord->date_arrivee->locale('fr')->translatedFormat('d F Y');
 
-        $section->addText('2°) Observations sur le fond', ['bold' => true]);
-        $this->ajouterParagraphes($section, $appreciation->observations_fond);
-        $section->addTextBreak(1);
-
-        $conclusion = $section->addTable(['borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 100]);
-        $conclusion->addRow();
-        $texteRun = $conclusion->addCell(9350)->addTextRun();
-        $texteRun->addText('Conclusion : ', ['bold' => true]);
-        $texteRun->addText($appreciation->avis ?: '—');
+        $table = $section->addTable(['borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 100]);
+        $this->ajouterLigneChamp($table, 'Origine', $appreciation->origine);
+        $this->ajouterLigneChamp($table, 'Objet', $appreciation->objet);
+        $this->ajouterLigneChamp($table, 'Référence', $reference);
+        $this->ajouterLigneChamp($table, 'Destinataire', $appreciation->origine);
+        $this->ajouterLigneObservations($table, '1°) Observations sur la forme', $appreciation->observations_forme);
+        $this->ajouterLigneObservations($table, '2°) Observations sur le fond', $appreciation->observations_fond);
+        $this->ajouterLigneConclusion($table, $appreciation->avis);
 
         $section->addTextBreak(2);
         $section->addText('Rédigé par : '.$appreciation->redacteur->nom_complet, ['size' => 9, 'italic' => true]);
@@ -95,27 +92,42 @@ class FicheAppreciationGenerator
         return $chemin;
     }
 
+    /**
+     * En-tête ministériel sans tableau : les armoiries flottent à gauche (habillage
+     * "square"), le nom du ministère et les coordonnées à droite s'alignent sur une
+     * tabulation droite positionnée au bord du contenu — le texte du ministère occupe
+     * la zone laissée libre par l'image, comme dans un traitement de texte classique.
+     */
     private function ajouterEnTete(Section $section): void
     {
-        $enTete = $section->addTable(['borderSize' => 0, 'cellMargin' => 0]);
-        $enTete->addRow();
-
-        $celluleLogo = $enTete->addCell(1100);
         $cheminLogo = resource_path('images/armoiries-benin.png');
         if (is_file($cheminLogo)) {
-            $celluleLogo->addImage($cheminLogo, ['width' => 55, 'height' => 55]);
+            $section->addImage($cheminLogo, [
+                'width' => 60,
+                'height' => 60,
+                'wrappingStyle' => 'square',
+                'positioning' => 'relative',
+                'posHorizontal' => 'left',
+                'posHorizontalRel' => 'margin',
+                'posVertical' => 'top',
+                'posVerticalRel' => 'margin',
+            ]);
         }
 
-        $gauche = $enTete->addCell(4400);
-        $gauche->addText('MINISTÈRE', ['bold' => true, 'size' => 9]);
-        $gauche->addText("DE L'ENSEIGNEMENT SUPÉRIEUR", ['bold' => true, 'size' => 9]);
-        $gauche->addText('ET DE LA RECHERCHE SCIENTIFIQUE', ['bold' => true, 'size' => 9]);
-        $gauche->addText('RÉPUBLIQUE DU BÉNIN', ['bold' => true, 'size' => 9]);
+        $styleTabulation = ['tabs' => [new Tab('right', self::LARGEUR_CONTENU)]];
 
-        $droite = $enTete->addCell(3850);
-        $droite->addText('01 BP 348 Cotonou', ['size' => 8], ['alignment' => Jc::END]);
-        $droite->addText('Tél. +229 21 30 53 93', ['size' => 8], ['alignment' => Jc::END]);
-        $droite->addText('www.enseignementsuperieur.gouv.bj', ['size' => 8], ['alignment' => Jc::END]);
+        $lignes = [
+            ['MINISTÈRE', '01 BP 348 Cotonou'],
+            ["DE L'ENSEIGNEMENT SUPÉRIEUR", 'Tél. +229 21 30 53 93'],
+            ['ET DE LA RECHERCHE SCIENTIFIQUE', 'www.enseignementsuperieur.gouv.bj'],
+            ['RÉPUBLIQUE DU BÉNIN', ''],
+        ];
+
+        foreach ($lignes as [$gauche, $droite]) {
+            $texteRun = $section->addTextRun($styleTabulation);
+            $texteRun->addText($gauche, ['bold' => true, 'size' => 9]);
+            $texteRun->addText("\t".$droite, ['size' => 8]);
+        }
 
         $section->addTextBreak(1);
         $section->addText(
@@ -126,37 +138,27 @@ class FicheAppreciationGenerator
         $section->addTextBreak(1);
     }
 
-    private function ajouterChampEncadre(Section $section, string $label, ?string $valeur): void
+    private function ajouterLigneChamp(Table $table, string $label, ?string $valeur): void
     {
-        $table = $section->addTable(['borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 100]);
         $table->addRow();
-        $texteRun = $table->addCell(9350)->addTextRun();
+        $texteRun = $table->addCell(self::LARGEUR_CONTENU)->addTextRun();
         $texteRun->addText($label.' : ', ['bold' => true]);
         $texteRun->addText($valeur ?: '—');
     }
 
-    /**
-     * Une ligne commençant par « - », « • » ou « * » devient un point de liste ; le nombre
-     * d'espaces avant ce marqueur détermine le sous-niveau (2 espaces = un niveau plus bas).
-     * Une ligne sans marqueur reste un simple paragraphe (ex: la phrase d'introduction).
-     */
-    private function ajouterParagraphes(Section $section, ?string $texte): void
+    private function ajouterLigneObservations(Table $table, string $titre, ?string $texte): void
     {
-        $lignes = array_filter(explode("\n", (string) $texte), fn ($ligne) => trim($ligne) !== '');
+        $table->addRow();
+        $cellule = $table->addCell(self::LARGEUR_CONTENU);
+        $cellule->addText($titre, ['bold' => true]);
+        $this->ajouterParagraphes($cellule, $texte);
+    }
 
-        if ($lignes === []) {
-            $section->addText('—');
-
-            return;
-        }
-
-        foreach ($lignes as $ligne) {
-            if (preg_match('/^(\s*)[-•*]\s+(.+)$/', $ligne, $correspondances)) {
-                $niveau = min(intdiv(strlen(str_replace("\t", '  ', $correspondances[1])), 2), 3);
-                $section->addListItem(trim($correspondances[2]), $niveau);
-            } else {
-                $section->addText(trim($ligne));
-            }
-        }
+    private function ajouterLigneConclusion(Table $table, ?string $avis): void
+    {
+        $table->addRow();
+        $texteRun = $table->addCell(self::LARGEUR_CONTENU)->addTextRun();
+        $texteRun->addText('Conclusion : ', ['bold' => true]);
+        $texteRun->addText($avis ?: '—');
     }
 }

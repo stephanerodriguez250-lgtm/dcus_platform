@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Accord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AccordEnvoiSignatureTest extends TestCase
@@ -63,6 +65,26 @@ class AccordEnvoiSignatureTest extends TestCase
         ]);
 
         $this->assertSame(now()->format('Y-m-d'), $accord->fresh()->date_signature->format('Y-m-d'));
+    }
+
+    public function test_secretaire_can_upload_the_signed_document_when_signing(): void
+    {
+        Storage::fake('public');
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create(['envoye_le' => now()]);
+        $fichier = UploadedFile::fake()->create('accord-signe.pdf', 100, 'application/pdf');
+
+        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/signer", [
+            'duree_valeur' => 2,
+            'duree_unite' => 'ans',
+            'fichier_signe' => $fichier,
+        ]);
+
+        $response->assertRedirect(route('accords.show', $accord));
+        $accord->refresh();
+        $this->assertNotNull($accord->chemin_fichier_signe);
+        Storage::disk('public')->assertExists($accord->chemin_fichier_signe);
+        $this->assertSame('accord-signe.pdf', $accord->nom_fichier_signe);
     }
 
     public function test_agent_cannot_mark_as_sent_or_signed(): void

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('nom_fichier')->nullable();
             $table->date('envoye_le')->nullable(); // Étape 3 : accord + fiche transmis au destinataire
             $table->date('date_signature')->nullable();
+            $table->string('chemin_fichier_signe')->nullable(); // document signé, chargé à l'étape 3
+            $table->string('nom_fichier_signe')->nullable();
             $table->unsignedSmallInteger('duree_valeur')->nullable();
             $table->enum('duree_unite', ['mois', 'ans'])->nullable();
             $table->date('date_expiration')->nullable(); // calculée depuis date_signature + durée

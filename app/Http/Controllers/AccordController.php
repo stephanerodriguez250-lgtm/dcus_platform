@@ -161,12 +161,23 @@ class AccordController extends Controller
             'date_signature' => 'nullable|date',
             'duree_valeur' => 'required|integer|min:1',
             'duree_unite' => 'required|in:mois,ans',
+            'fichier_signe' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
         ]);
 
         $accord->date_signature = $data['date_signature'] ?? now()->toDateString();
         $accord->duree_valeur = $data['duree_valeur'];
         $accord->duree_unite = $data['duree_unite'];
         $accord->date_expiration = $accord->calculerDateExpiration();
+
+        if ($request->hasFile('fichier_signe')) {
+            if ($accord->chemin_fichier_signe) {
+                Storage::disk('public')->delete($accord->chemin_fichier_signe);
+            }
+            $fichier = $request->file('fichier_signe');
+            $accord->chemin_fichier_signe = $fichier->store('accords/signes', 'public');
+            $accord->nom_fichier_signe = $fichier->getClientOriginalName();
+        }
+
         $accord->save();
 
         AccordHistorique::create([
@@ -187,8 +198,14 @@ class AccordController extends Controller
         if ($accord->chemin_fichier) {
             Storage::disk('public')->delete($accord->chemin_fichier);
         }
+        if ($accord->chemin_fichier_signe) {
+            Storage::disk('public')->delete($accord->chemin_fichier_signe);
+        }
         if ($accord->appreciation?->chemin_fiche_word) {
             Storage::disk('public')->delete($accord->appreciation->chemin_fiche_word);
+        }
+        if ($accord->rapportConformite?->chemin_rapport_word) {
+            Storage::disk('public')->delete($accord->rapportConformite->chemin_rapport_word);
         }
 
         $accord->delete();

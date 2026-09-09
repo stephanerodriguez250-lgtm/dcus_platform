@@ -74,6 +74,15 @@
                         <span class="text-muted">—</span>
                         @endif
                     </div>
+                    @if($accord->chemin_fichier_signe)
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Document signé</div>
+                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($accord->chemin_fichier_signe) }}"
+                           target="_blank" rel="noopener" class="text-decoration-none">
+                            <i class="bi bi-download me-1"></i>{{ $accord->nom_fichier_signe }}
+                        </a>
+                    </div>
+                    @endif
                 </div>
 
                 @if($accord->envoye_le || $accord->date_signature)
@@ -235,7 +244,7 @@
         <div class="card mb-3">
             <div class="card-header py-3"><i class="bi bi-pen text-primary me-2"></i>Enregistrer la signature</div>
             <div class="card-body">
-                <form method="POST" action="{{ route('accords.signer', $accord) }}">
+                <form method="POST" action="{{ route('accords.signer', $accord) }}" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Date de signature</label>
@@ -262,8 +271,56 @@
                             @error('duree_unite')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Document signé</label>
+                        <input type="file" name="fichier_signe" accept=".pdf,.doc,.docx"
+                               class="form-control @error('fichier_signe') is-invalid @enderror">
+                        <div class="form-text">Optionnel — nécessaire pour lancer l'analyse de conformité IA (rôle 2).</div>
+                        @error('fichier_signe')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-check-lg me-2"></i>Enregistrer la signature
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endif
+
+        @if(auth()->user()->canManage() && $accord->appreciation && $accord->chemin_fichier_signe)
+        <div class="card mb-3">
+            <div class="card-header py-3"><i class="bi bi-stars text-primary me-2"></i>Analyse de conformité (IA)</div>
+            <div class="card-body">
+                @if($accord->rapportConformite)
+                @php $r = $accord->rapportConformite; @endphp
+                <div class="mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase mb-1">Résumé</div>
+                    <div class="small" style="white-space: pre-line;">{{ $r->resume }}</div>
+                </div>
+                @if($r->points_conformes)
+                <div class="mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase mb-1">Pris en compte</div>
+                    <div class="small" style="white-space: pre-line;">{{ $r->points_conformes }}</div>
+                </div>
+                @endif
+                @if($r->points_non_conformes)
+                <div class="mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase mb-1">Non pris en compte</div>
+                    <div class="small" style="white-space: pre-line;">{{ $r->points_non_conformes }}</div>
+                </div>
+                @endif
+                @if($r->chemin_rapport_word)
+                <a href="{{ route('accords.rapports-conformite.telecharger', $r) }}" class="btn btn-sm btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-file-earmark-word me-1"></i>Télécharger le rapport (.docx)
+                </a>
+                @endif
+                <div class="text-muted small mb-2">
+                    Généré le {{ $r->genere_le->locale('fr')->translatedFormat('d M Y à H:i') }} par {{ $r->redacteur->nom_complet }}
+                </div>
+                @endif
+                <form method="POST" action="{{ route('accords.analyser-conformite', $accord) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-secondary w-100 btn-sm">
+                        <i class="bi bi-arrow-repeat me-1"></i>{{ $accord->rapportConformite ? 'Relancer l\'analyse' : 'Analyser la conformité' }}
                     </button>
                 </form>
             </div>

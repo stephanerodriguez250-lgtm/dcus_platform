@@ -78,6 +78,16 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($appreciation->observations_forme, $texte);
         $this->assertStringContainsString($appreciation->observations_fond, $texte);
         $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure les armoiries du Bénin.");
+
+        // L'en-tête (armoiries + ministère) ne doit contenir aucun tableau : tout le reste
+        // (Origine/Objet/Référence/Destinataire/Observations/Conclusion) forme un unique
+        // tableau, qui doit donc apparaître après le nom du ministère dans le document.
+        $this->assertSame(1, substr_count($texte, '<w:tbl>'), 'Un seul tableau doit exister dans le document.');
+        $positionMinistere = strpos($texte, 'MINISTÈRE');
+        $positionTableau = strpos($texte, '<w:tbl>');
+        $this->assertNotFalse($positionMinistere);
+        $this->assertNotFalse($positionTableau);
+        $this->assertLessThan($positionTableau, $positionMinistere, "L'en-tête doit précéder le tableau, pas y être imbriqué.");
     }
 
     public function test_les_lignes_avec_puce_deviennent_des_listes_a_puces_avec_sous_niveaux(): void

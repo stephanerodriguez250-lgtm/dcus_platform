@@ -15,7 +15,8 @@ class Accord extends Model
         'date_arrivee', 'heure_arrivee',
         'chemin_fichier', 'nom_fichier',
         'envoye_le',
-        'date_signature', 'duree_valeur', 'duree_unite', 'date_expiration',
+        'date_signature', 'chemin_fichier_signe', 'nom_fichier_signe',
+        'duree_valeur', 'duree_unite', 'date_expiration',
         'alerte_expiration_envoyee_le',
         'created_by',
     ];
@@ -61,6 +62,11 @@ class Accord extends Model
     public function historiques()
     {
         return $this->hasMany(AccordHistorique::class)->orderByDesc('date_modification');
+    }
+
+    public function rapportConformite()
+    {
+        return $this->hasOne(AccordRapportConformite::class);
     }
 
     // --- Étape calculée (le workflow n'a pas de statut stocké, il se déduit des données) ---

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccordAppreciateurController;
 use App\Http\Controllers\AccordAppreciationController;
+use App\Http\Controllers\AccordConformiteController;
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\ArchivePartageController;
@@ -105,8 +106,15 @@ Route::middleware('auth')->group(function () {
         ->name('accords.apprecier.create');
     Route::post('accords/{accord}/apprecier', [AccordAppreciationController::class, 'store'])
         ->name('accords.apprecier.store');
+    Route::post('accords/{accord}/apprecier/suggestion', [AccordAppreciationController::class, 'suggerer'])
+        ->name('accords.apprecier.suggestion');
     Route::get('accords/appreciations/{appreciation}/telecharger', [AccordAppreciationController::class, 'telecharger'])
         ->name('accords.appreciations.telecharger');
+
+    Route::post('accords/{accord}/analyser-conformite', [AccordConformiteController::class, 'analyser'])
+        ->name('accords.analyser-conformite');
+    Route::get('accords/rapports-conformite/{rapport}/telecharger', [AccordConformiteController::class, 'telecharger'])
+        ->name('accords.rapports-conformite.telecharger');
 
     // Archives (espace privé par utilisateur)
     Route::get('archives/fichiers/create', [ArchiveController::class, 'createFichier'])

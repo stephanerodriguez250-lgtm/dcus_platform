@@ -21,17 +21,23 @@
                 </div>
                 @endif
 
-                <div class="alert alert-light border small mb-4">
-                    Référence MESRS : <strong>{{ $accord->reference }}</strong> — Institution : <strong>{{ $accord->institution_partenaire }}</strong>
+                <div class="alert alert-light border small mb-4 d-flex justify-content-between align-items-center gap-3">
+                    <span>Référence MESRS : <strong>{{ $accord->reference }}</strong> — Institution : <strong>{{ $accord->institution_partenaire }}</strong></span>
+                    <button type="button" id="bouton-suggestion-ia" class="btn btn-sm btn-outline-primary text-nowrap"
+                            data-url="{{ route('accords.apprecier.suggestion', $accord) }}">
+                        <i class="bi bi-stars me-1"></i>Générer avec l'IA
+                    </button>
                 </div>
 
-                <form method="POST" action="{{ route('accords.apprecier.store', $accord) }}">
+                <div id="erreur-suggestion-ia" class="alert alert-danger d-none"></div>
+
+                <form method="POST" action="{{ route('accords.apprecier.store', $accord) }}" id="formulaire-appreciation">
                     @csrf
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Origine <span class="text-danger">*</span></label>
-                            <input type="text" name="origine"
+                            <input type="text" name="origine" id="champ-origine"
                                    class="form-control @error('origine') is-invalid @enderror"
                                    value="{{ old('origine', $accord->appreciation?->origine) }}">
                             @error('origine')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -39,7 +45,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Objet <span class="text-danger">*</span></label>
-                            <input type="text" name="objet"
+                            <input type="text" name="objet" id="champ-objet"
                                    class="form-control @error('objet') is-invalid @enderror"
                                    value="{{ old('objet', $accord->appreciation?->objet) }}">
                             @error('objet')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -47,28 +53,47 @@
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Avis <span class="text-danger">*</span></label>
-                            <textarea name="avis" rows="4"
+                            <textarea name="avis" id="champ-avis" rows="6"
                                       class="form-control @error('avis') is-invalid @enderror">{{ old('avis', $accord->appreciation?->avis) }}</textarea>
                             @error('avis')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Observations sur la forme</label>
-                            <textarea name="observations_forme" rows="4"
-                                      class="form-control">{{ old('observations_forme', $accord->appreciation?->observations_forme) }}</textarea>
-                            <div class="form-text">Commencez une ligne par « - » pour en faire une puce ; indentez de 2 espaces pour un sous-point. Une ligne sans « - » reste un simple paragraphe.</div>
+                        @php
+                            $texteForme = old('observations_forme', $accord->appreciation?->observations_forme);
+                            $texteFond = old('observations_fond', $accord->appreciation?->observations_fond);
+                        @endphp
+
+                        <div class="col-12">
+                            <button type="button"
+                                    class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+                                    data-bs-toggle="collapse" data-bs-target="#bloc-observations-forme">
+                                <span class="fw-semibold">Observations sur la forme</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="collapse mt-2 {{ $texteForme ? 'show' : '' }}" id="bloc-observations-forme">
+                                <textarea name="observations_forme" id="champ-observations-forme" rows="16"
+                                          class="form-control">{{ $texteForme }}</textarea>
+                                <div class="form-text">Commencez une ligne par « - » pour en faire une puce ; indentez de 2 espaces pour un sous-point. Une ligne sans « - » reste un simple paragraphe.</div>
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Observations sur le fond</label>
-                            <textarea name="observations_fond" rows="4"
-                                      class="form-control">{{ old('observations_fond', $accord->appreciation?->observations_fond) }}</textarea>
-                            <div class="form-text">Commencez une ligne par « - » pour en faire une puce ; indentez de 2 espaces pour un sous-point. Une ligne sans « - » reste un simple paragraphe.</div>
+                        <div class="col-12">
+                            <button type="button"
+                                    class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+                                    data-bs-toggle="collapse" data-bs-target="#bloc-observations-fond">
+                                <span class="fw-semibold">Observations sur le fond</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="collapse mt-2 {{ $texteFond ? 'show' : '' }}" id="bloc-observations-fond">
+                                <textarea name="observations_fond" id="champ-observations-fond" rows="16"
+                                          class="form-control">{{ $texteFond }}</textarea>
+                                <div class="form-text">Commencez une ligne par « - » pour en faire une puce ; indentez de 2 espaces pour un sous-point. Une ligne sans « - » reste un simple paragraphe.</div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-text mt-2">
-                        L'enregistrement génère automatiquement la fiche d'appréciation au format Word (.docx).
+                        L'enregistrement génère automatiquement la fiche d'appréciation au format Word (.docx). Le bouton « Générer avec l'IA » ne fait que pré-remplir les champs ci-dessus — vous pouvez tout modifier avant d'enregistrer.
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
@@ -84,4 +109,49 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.getElementById('bouton-suggestion-ia').addEventListener('click', function () {
+    const bouton = this;
+    const erreur = document.getElementById('erreur-suggestion-ia');
+    const libelleInitial = bouton.innerHTML;
+
+    erreur.classList.add('d-none');
+    bouton.disabled = true;
+    bouton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Génération en cours…';
+
+    fetch(bouton.dataset.url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    })
+        .then((reponse) => reponse.json().then((donnees) => ({ ok: reponse.ok, donnees })))
+        .then(({ ok, donnees }) => {
+            if (!ok) {
+                throw new Error(donnees.error || "La génération IA a échoué.");
+            }
+            document.getElementById('champ-origine').value = donnees.origine || '';
+            document.getElementById('champ-objet').value = donnees.objet || '';
+            document.getElementById('champ-avis').value = donnees.avis || '';
+            document.getElementById('champ-observations-forme').value = donnees.observations_forme || '';
+            document.getElementById('champ-observations-fond').value = donnees.observations_fond || '';
+
+            ['bloc-observations-forme', 'bloc-observations-fond'].forEach(function (id) {
+                bootstrap.Collapse.getOrCreateInstance(document.getElementById(id)).show();
+            });
+        })
+        .catch((e) => {
+            erreur.textContent = e.message;
+            erreur.classList.remove('d-none');
+        })
+        .finally(() => {
+            bouton.disabled = false;
+            bouton.innerHTML = libelleInitial;
+        });
+});
+</script>
+@endpush
 @endsection

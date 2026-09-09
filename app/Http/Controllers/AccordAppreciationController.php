@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Accord;
 use App\Models\AccordAppreciation;
 use App\Models\AccordHistorique;
+use App\Services\AccordAppreciationSuggestionGenerator;
 use App\Services\FicheAppreciationGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class AccordAppreciationController extends Controller
 {
@@ -18,6 +20,22 @@ class AccordAppreciationController extends Controller
         $accord->load('appreciation');
 
         return view('accords.appreciation', compact('accord'));
+    }
+
+    /**
+     * Rôle 1 de l'agent IA : suggère un contenu pour les champs du formulaire, à partir des
+     * fiches d'appréciation déjà en base et du document de l'accord. L'agent reste libre de
+     * tout modifier avant d'enregistrer — rien n'est sauvegardé par cet appel.
+     */
+    public function suggerer(Accord $accord, AccordAppreciationSuggestionGenerator $generator)
+    {
+        $this->authorize('apprecier', Accord::class);
+
+        try {
+            return response()->json($generator->generer($accord));
+        } catch (Throwable $e) {
+            return response()->json(['error' => 'La génération IA a échoué : '.$e->getMessage()], 422);
+        }
     }
 
     public function store(Request $request, Accord $accord, FicheAppreciationGenerator $generator)
