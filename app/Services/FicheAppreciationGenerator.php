@@ -11,19 +11,31 @@ use PhpOffice\PhpWord\Element\Table;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\SimpleType\Jc;
-use PhpOffice\PhpWord\Style\Tab;
 
 /**
  * Génère la fiche d'appréciation au format .docx, reproduisant la mise en forme
- * officielle des fiches DCUS : en-tête ministériel (armoiries + texte, sans tableau),
- * puis un unique tableau bordé regroupant Origine/Objet/Référence/Destinataire,
- * Observations sur la forme/le fond et Conclusion — chaque champ sur sa propre ligne.
+ * officielle des fiches DCUS : en-tête ministériel (logo flottant + coordonnées alignées
+ * à droite sur la même ligne, sans tableau ni tabulation), puis un unique tableau bordé
+ * regroupant Origine/Objet/Référence/Destinataire, Observations sur la forme/le fond et
+ * Conclusion — chaque champ sur sa propre ligne.
  *
  * Le numéro d'avis ("Avis N°.../MESRS/DCUS/{année}") est laissé vide sur le document
  * généré : comme sur les fiches papier, il est attribué et complété à la main par la
- * DCUS. Les armoiries du Bénin (resources/images/armoiries-benin.png) sont intégrées
- * dans l'en-tête ; seul le blason est utilisé (fourni par l'utilisateur), le texte du
- * ministère reste codé en dur car le fichier reçu portait le nom d'un autre ministère.
+ * DCUS. L'en-tête utilise directement resources/images/logo-mesrs.png (le logo officiel
+ * MESRS — armoiries + "MINISTÈRE DE L'ENSEIGNEMENT SUPÉRIEUR ET DE LA RECHERCHE
+ * SCIENTIFIQUE" + "RÉPUBLIQUE DU BÉNIN" déjà composés dans l'image, fourni par
+ * l'utilisateur après deux tentatives précédentes avec des fichiers mal étiquetés pour
+ * un autre ministère) en image flottante ancrée en haut à gauche de la marge, avec les
+ * coordonnées en simples paragraphes alignés à droite (Jc::END, sans tabulation) — le
+ * flottement fait sortir le logo du flux normal du texte, si bien que les coordonnées
+ * démarrent à la même hauteur que le logo au lieu de s'empiler dessous. Une version
+ * précédente utilisait une image en ligne (non flottante) par prudence, mais un contrôle
+ * visuel direct (rendu du .docx en PDF puis en image) a montré que le logo et les
+ * coordonnées ne partageaient alors pas la même ligne d'en-tête. Une version encore plus
+ * ancienne faisait flotter du texte à côté d'une image via une tabulation à position fixe,
+ * ce qui débordait de la page et tronquait le texte à l'impression ; l'alignement à droite
+ * simple (sans tabulation) utilisé ici s'adapte toujours à la marge réelle et ne peut donc
+ * pas déborder de la même façon.
  */
 class FicheAppreciationGenerator
 {
@@ -96,49 +108,41 @@ class FicheAppreciationGenerator
     }
 
     /**
-     * En-tête ministériel sans tableau : les armoiries flottent à gauche (habillage
-     * "square"), le nom du ministère et les coordonnées à droite s'alignent sur une
-     * tabulation droite positionnée au bord du contenu — le texte du ministère occupe
-     * la zone laissée libre par l'image, comme dans un traitement de texte classique.
+     * En-tête ministériel sans tableau ni tabulation : le logo flotte, ancré en haut à
+     * gauche de la marge (positionnement relatif, pas une tabulation absolue), pendant que
+     * les coordonnées restent de simples paragraphes alignés à droite (Jc::END) — leur
+     * position s'adapte donc toujours à la largeur utile réelle et ne peut pas déborder,
+     * contrairement à l'ancienne technique par tabulation qui plaçait le texte à une
+     * position fixe en twips (source du débordement observé précédemment). Le logo flottant
+     * sort du flux normal du texte : les deux blocs démarrent ainsi à la même hauteur, sur
+     * la même "ligne" d'en-tête, sans être composés dans une seule et même ligne de texte.
      */
     private function ajouterEnTete(Section $section): void
     {
-        $cheminLogo = resource_path('images/armoiries-benin.png');
+        $cheminLogo = resource_path('images/logo-mesrs.png');
         if (is_file($cheminLogo)) {
             $section->addImage($cheminLogo, [
-                'width' => 60,
+                'width' => 262,
                 'height' => 60,
                 'wrappingStyle' => 'square',
                 'positioning' => 'relative',
-                'posHorizontal' => 'left',
                 'posHorizontalRel' => 'margin',
-                'posVertical' => 'top',
+                'posHorizontal' => 'left',
                 'posVerticalRel' => 'margin',
+                'posVertical' => 'top',
             ]);
         }
 
-        $styleTabulation = ['tabs' => [new Tab('right', self::LARGEUR_CONTENU)]];
-
-        $lignes = [
-            ['MINISTÈRE', '01 BP 348 Cotonou'],
-            ["DE L'ENSEIGNEMENT SUPÉRIEUR", 'Tél. +229 21 30 53 93'],
-            ['ET DE LA RECHERCHE SCIENTIFIQUE', 'www.enseignementsuperieur.gouv.bj'],
-            ['RÉPUBLIQUE DU BÉNIN', ''],
-        ];
-
-        foreach ($lignes as [$gauche, $droite]) {
-            $texteRun = $section->addTextRun($styleTabulation);
-            $texteRun->addText($gauche, ['bold' => true, 'size' => 9]);
-            $texteRun->addText("\t".$droite, ['size' => 8]);
-        }
-
+        $section->addText('01 BP 348 Cotonou', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('Tél. +229 21 30 53 93', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('www.enseignementsuperieur.gouv.bj', ['size' => 8], ['alignment' => Jc::END]);
         $section->addTextBreak(1);
         $section->addText(
             'Abomey-Calavi, le '.now()->locale('fr')->translatedFormat('d F Y'),
             [],
             ['alignment' => Jc::END]
         );
-        $section->addTextBreak(1);
+        $section->addTextBreak(2);
     }
 
     private function ajouterLigneChamp(Table $table, string $label, ?string $valeur): void

@@ -77,25 +77,31 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($appreciation->avis, $texte);
         $this->assertStringContainsString($appreciation->observations_forme, $texte);
         $this->assertStringContainsString($appreciation->observations_fond, $texte);
-        $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure les armoiries du Bénin.");
+        $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure le logo du ministère.");
 
-        // L'en-tête (armoiries + ministère) ne doit contenir aucun tableau : tout le reste
-        // (Origine/Objet/Référence/Destinataire/Observations/Conclusion) forme un unique
-        // tableau, qui doit donc apparaître après le nom du ministère dans le document.
+        // Le logo doit flotter (ancré en haut de la marge) plutôt qu'être une image en
+        // ligne : c'est ce qui permet aux coordonnées de démarrer à la même hauteur que
+        // lui plutôt que de s'empiler dessous (vérifié visuellement après un rendu PDF).
+        $this->assertStringContainsString('position:relative', $texte, 'Le logo doit être positionné en flottant, pas en ligne.');
+        $this->assertStringContainsString('mso-position-vertical:top', $texte, 'Le logo doit être ancré en haut de la marge.');
+
+        // L'en-tête (logo flottant + coordonnées) ne doit contenir aucun tableau ni aucune
+        // tabulation (source du débordement précédent) : les coordonnées restent de simples
+        // paragraphes alignés à droite. Tout le reste (Origine/Objet/Référence/Destinataire/
+        // Observations/Conclusion) forme un unique tableau, qui doit donc apparaître après
+        // les coordonnées dans le document.
         $this->assertSame(1, substr_count($texte, '<w:tbl>'), 'Un seul tableau doit exister dans le document.');
-        $positionMinistere = strpos($texte, 'MINISTÈRE');
+        $this->assertStringNotContainsString('<w:tabs>', $texte, "L'en-tête ne doit plus utiliser de tabulations (source du débordement).");
+        $positionCoordonnees = strpos($texte, '01 BP 348 Cotonou');
         $positionTableau = strpos($texte, '<w:tbl>');
-        $this->assertNotFalse($positionMinistere);
+        $this->assertNotFalse($positionCoordonnees);
         $this->assertNotFalse($positionTableau);
-        $this->assertLessThan($positionTableau, $positionMinistere, "L'en-tête doit précéder le tableau, pas y être imbriqué.");
+        $this->assertLessThan($positionTableau, $positionCoordonnees, "L'en-tête doit précéder le tableau, pas y être imbriqué.");
 
-        // La marge supérieure doit être réduite pour remonter l'en-tête en haut de la page,
-        // et la tabulation droite de l'en-tête ne doit jamais dépasser la largeur utile de
-        // la page (sinon le texte de droite déborde et se retrouve tronqué à l'impression).
+        // La marge supérieure doit être réduite pour remonter l'en-tête en haut de la page.
         $this->assertStringContainsString('w:top="600"', $texte);
         $this->assertStringContainsString('w:left="900"', $texte);
         $this->assertStringContainsString('w:right="900"', $texte);
-        $this->assertStringContainsString('w:pos="10000"', $texte);
 
         // La phrase introductive doit se trouver DANS le tableau, dans la même cellule que
         // "1°) Observations sur la forme", juste au-dessus — plus avant le tableau.
