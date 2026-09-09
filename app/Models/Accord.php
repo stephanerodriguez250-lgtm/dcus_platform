@@ -28,6 +28,10 @@ class Accord extends Model
         'date_signature' => 'date',
         'date_expiration' => 'date',
         'alerte_expiration_envoyee_le' => 'datetime',
+        // Sans ce cast, `duree_valeur` reste une chaîne quand elle vient directement d'une
+        // requête HTTP (la règle de validation "integer" ne fait que valider le format, elle
+        // ne caste pas) — Carbon::addYears()/addMonths() refuse alors une chaîne (TypeError).
+        'duree_valeur' => 'integer',
     ];
 
     public static array $dureeUnites = [

@@ -54,6 +54,25 @@ class AccordEnvoiSignatureTest extends TestCase
         $this->assertDatabaseHas('accord_historiques', ['accord_id' => $accord->id, 'evenement' => 'Signature enregistrée']);
     }
 
+    public function test_expiration_is_calculated_when_duree_valeur_arrives_as_a_string(): void
+    {
+        // Un vrai navigateur envoie toujours les champs de formulaire en chaînes de
+        // caractères (multipart/form-data) : la règle de validation "integer" ne fait que
+        // valider le format, elle ne caste pas la valeur. Sans cast sur le modèle,
+        // Carbon::addYears()/addMonths() reçoit alors une chaîne et lève une TypeError.
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create(['envoye_le' => now()]);
+
+        $response = $this->actingAs($secretaire)->post("/accords/{$accord->id}/signer", [
+            'date_signature' => '2026-01-15',
+            'duree_valeur' => '3',
+            'duree_unite' => 'ans',
+        ]);
+
+        $response->assertRedirect(route('accords.show', $accord));
+        $this->assertSame('2029-01-15', $accord->fresh()->date_expiration->format('Y-m-d'));
+    }
+
     public function test_date_signature_defaults_to_today_when_left_empty(): void
     {
         $secretaire = User::factory()->secretaire()->create();
