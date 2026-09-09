@@ -120,6 +120,9 @@
                         <td>{{ $fichier->created_at->format('d/m/Y') }}</td>
                         <td>{{ $fichier->created_at->format('H:i') }}</td>
                         <td class="text-end pe-4">
+                            <a href="{{ route('archives.fichiers.apercu', $fichier) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary me-1" title="Visualiser">
+                                <i class="bi bi-eye"></i>
+                            </a>
                             <a href="{{ route('archives.fichiers.download', $fichier) }}" class="btn btn-sm btn-outline-primary me-1" title="Télécharger">
                                 <i class="bi bi-download"></i>
                             </a>

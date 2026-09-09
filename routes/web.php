@@ -90,6 +90,8 @@ Route::middleware('auth')->group(function () {
         ->name('archives.fichiers.destroy');
     Route::get('archives/fichiers/{fichier}/download', [ArchiveController::class, 'downloadFichier'])
         ->name('archives.fichiers.download');
+    Route::get('archives/fichiers/{fichier}/apercu', [ArchiveController::class, 'apercuFichier'])
+        ->name('archives.fichiers.apercu');
 
     Route::post('archives/dossiers', [ArchiveController::class, 'storeDossier'])
         ->name('archives.dossiers.store');

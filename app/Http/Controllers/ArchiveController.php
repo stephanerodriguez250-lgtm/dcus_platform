@@ -187,4 +187,15 @@ class ArchiveController extends Controller
 
         return Storage::disk('public')->download($fichier->chemin_fichier, $fichier->nom_fichier);
     }
+
+    public function apercuFichier(ArchiveFichier $fichier)
+    {
+        $this->authorize('view', $fichier);
+
+        if (! Storage::disk('public')->exists($fichier->chemin_fichier)) {
+            return back()->with('error', 'Fichier introuvable.');
+        }
+
+        return Storage::disk('public')->response($fichier->chemin_fichier, $fichier->nom_fichier);
+    }
 }
