@@ -135,9 +135,14 @@ class FicheAppreciationGenerator
         $texteRun->addText($valeur ?: '—');
     }
 
+    /**
+     * Une ligne commençant par « - », « • » ou « * » devient un point de liste ; le nombre
+     * d'espaces avant ce marqueur détermine le sous-niveau (2 espaces = un niveau plus bas).
+     * Une ligne sans marqueur reste un simple paragraphe (ex: la phrase d'introduction).
+     */
     private function ajouterParagraphes(Section $section, ?string $texte): void
     {
-        $lignes = array_filter(array_map('trim', explode("\n", (string) $texte)));
+        $lignes = array_filter(explode("\n", (string) $texte), fn ($ligne) => trim($ligne) !== '');
 
         if ($lignes === []) {
             $section->addText('—');
@@ -146,7 +151,12 @@ class FicheAppreciationGenerator
         }
 
         foreach ($lignes as $ligne) {
-            $section->addText($ligne);
+            if (preg_match('/^(\s*)[-•*]\s+(.+)$/', $ligne, $correspondances)) {
+                $niveau = min(intdiv(strlen(str_replace("\t", '  ', $correspondances[1])), 2), 3);
+                $section->addListItem(trim($correspondances[2]), $niveau);
+            } else {
+                $section->addText(trim($ligne));
+            }
         }
     }
 }

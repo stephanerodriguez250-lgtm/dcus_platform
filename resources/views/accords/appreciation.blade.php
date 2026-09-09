@@ -56,12 +56,14 @@
                             <label class="form-label fw-semibold">Observations sur la forme</label>
                             <textarea name="observations_forme" rows="4"
                                       class="form-control">{{ old('observations_forme', $accord->appreciation?->observations_forme) }}</textarea>
+                            <div class="form-text">Commencez une ligne par « - » pour en faire une puce ; indentez de 2 espaces pour un sous-point. Une ligne sans « - » reste un simple paragraphe.</div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Observations sur le fond</label>
                             <textarea name="observations_fond" rows="4"
                                       class="form-control">{{ old('observations_fond', $accord->appreciation?->observations_fond) }}</textarea>
+                            <div class="form-text">Commencez une ligne par « - » pour en faire une puce ; indentez de 2 espaces pour un sous-point. Une ligne sans « - » reste un simple paragraphe.</div>
                         </div>
                     </div>
 

@@ -79,4 +79,28 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($appreciation->observations_fond, $texte);
         $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure les armoiries du Bénin.");
     }
+
+    public function test_les_lignes_avec_puce_deviennent_des_listes_a_puces_avec_sous_niveaux(): void
+    {
+        Storage::fake('public');
+
+        $accord = Accord::factory()->create();
+        $appreciation = AccordAppreciation::factory()->create([
+            'accord_id' => $accord->id,
+            'observations_forme' => "Le projet est structuré en huit (08) articles. Cependant, il est recommandé de :\n- écrire « CHAPITRE III » au lieu de « chapitre V »\n  - à la page 5 uniquement\n- titrer chaque article conformément au contenu",
+        ]);
+
+        $chemin = (new FicheAppreciationGenerator)->generer($appreciation);
+        $texte = $this->texteDocx($chemin);
+
+        // La phrase d'introduction (sans puce) reste un paragraphe simple, sans marqueur de liste.
+        $this->assertStringContainsString('Le projet est structuré', $texte);
+
+        // Les lignes à puce utilisent la numérotation de liste PhpWord (w:numPr/w:ilvl).
+        $this->assertStringContainsString('écrire « CHAPITRE III »', $texte);
+        $this->assertStringContainsString('à la page 5 uniquement', $texte);
+        $this->assertStringContainsString('titrer chaque article', $texte);
+        $this->assertMatchesRegularExpression('/<w:ilvl w:val="0"\/>/', $texte);
+        $this->assertMatchesRegularExpression('/<w:ilvl w:val="1"\/>/', $texte);
+    }
 }
