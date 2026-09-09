@@ -51,7 +51,8 @@
                         <th>Nom</th>
                         <th>Numéro</th>
                         <th>Taille</th>
-                        <th>Ajouté le</th>
+                        <th>Date</th>
+                        <th>Heure</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -64,7 +65,7 @@
                                 <i class="bi bi-folder-fill text-warning me-2"></i>{{ $sousDossier->nom }}
                             </a>
                         </td>
-                        <td colspan="3" class="text-muted small">Dossier</td>
+                        <td colspan="4" class="text-muted small">Dossier</td>
                         <td class="text-end pe-4">
                             <button type="button" class="btn btn-sm btn-outline-secondary me-1"
                                     data-bs-toggle="modal" data-bs-target="#renommerDossier{{ $sousDossier->id }}" title="Renommer">
@@ -116,7 +117,8 @@
                         </td>
                         <td>{{ $fichier->numero ?? '—' }}</td>
                         <td>{{ $fichier->taille_formatee }}</td>
-                        <td>{{ $fichier->created_at->format('d/m/Y H:i') }}</td>
+                        <td>{{ $fichier->created_at->format('d/m/Y') }}</td>
+                        <td>{{ $fichier->created_at->format('H:i') }}</td>
                         <td class="text-end pe-4">
                             <a href="{{ route('archives.fichiers.download', $fichier) }}" class="btn btn-sm btn-outline-primary me-1" title="Télécharger">
                                 <i class="bi bi-download"></i>
@@ -135,7 +137,7 @@
 
                     @if($sousDossiers->isEmpty() && $fichiers->isEmpty())
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-5">
+                        <td colspan="7" class="text-center text-muted py-5">
                             <i class="bi bi-folder2 fs-2 d-block mb-2"></i>
                             Ce dossier est vide
                         </td>
