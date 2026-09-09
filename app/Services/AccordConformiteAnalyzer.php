@@ -44,8 +44,6 @@ class AccordConformiteAnalyzer
             du Bénin. La DCUS avait émis les observations suivantes sur le projet d'accord
             « {$accord->titre} » avant sa signature :
 
-            Avis global émis : {$appreciation->avis}
-
             Observations sur la forme :
             {$appreciation->observations_forme}
 

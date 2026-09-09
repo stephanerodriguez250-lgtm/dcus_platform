@@ -20,7 +20,7 @@ class AccordAppreciationFactory extends Factory
             'accord_id' => Accord::factory(),
             'origine' => fake()->company(),
             'objet' => fake()->sentence(),
-            'avis' => fake()->paragraph(),
+            'avis' => fake()->numerify('####'),
             'observations_forme' => fake()->sentence(),
             'observations_fond' => fake()->sentence(),
             'redige_par' => User::factory(),

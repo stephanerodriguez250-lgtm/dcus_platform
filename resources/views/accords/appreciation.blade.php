@@ -51,10 +51,12 @@
                             @error('objet')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Avis <span class="text-danger">*</span></label>
-                            <textarea name="avis" id="champ-avis" rows="6"
-                                      class="form-control @error('avis') is-invalid @enderror">{{ old('avis', $accord->appreciation?->avis) }}</textarea>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Numéro d'avis <span class="text-danger">*</span></label>
+                            <input type="text" name="avis" id="champ-avis" placeholder="Ex. 0053"
+                                   class="form-control @error('avis') is-invalid @enderror"
+                                   value="{{ old('avis', $accord->appreciation?->avis) }}">
+                            <div class="form-text">Identifiant de la fiche, inscrit sur le document généré après « Avis N° » (ex. « Avis N° 0053 /MESRS/DCUS/{{ now()->format('Y') }} »).</div>
                             @error('avis')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
@@ -93,7 +95,7 @@
                     </div>
 
                     <div class="form-text mt-2">
-                        L'enregistrement génère automatiquement la fiche d'appréciation au format Word (.docx). Le bouton « Générer avec l'IA » ne fait que pré-remplir les champs ci-dessus — vous pouvez tout modifier avant d'enregistrer.
+                        L'enregistrement génère automatiquement la fiche d'appréciation au format Word (.docx), ainsi que la Conclusion (formulation fixe, à partir de l'intitulé de l'accord — elle ne se saisit pas). Le bouton « Générer avec l'IA » ne fait que pré-remplir Origine/Objet/Observations — vous pouvez tout modifier avant d'enregistrer.
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
@@ -135,7 +137,6 @@ document.getElementById('bouton-suggestion-ia').addEventListener('click', functi
             }
             document.getElementById('champ-origine').value = donnees.origine || '';
             document.getElementById('champ-objet').value = donnees.objet || '';
-            document.getElementById('champ-avis').value = donnees.avis || '';
             document.getElementById('champ-observations-forme').value = donnees.observations_forme || '';
             document.getElementById('champ-observations-fond').value = donnees.observations_fond || '';
 

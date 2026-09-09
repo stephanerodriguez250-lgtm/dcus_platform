@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('accord_id')->constrained('accords')->cascadeOnDelete();
             $table->string('origine');
             $table->text('objet');
-            $table->text('avis');
+            $table->string('avis');
             $table->text('observations_forme')->nullable();
             $table->text('observations_fond')->nullable();
             $table->foreignId('redige_par')->constrained('users');

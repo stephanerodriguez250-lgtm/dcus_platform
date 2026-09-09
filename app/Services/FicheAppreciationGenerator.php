@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Accord;
 use App\Models\AccordAppreciation;
 use App\Services\Concerns\RendDesParagraphesAvecPuces;
 use Illuminate\Support\Facades\Storage;
@@ -19,9 +20,12 @@ use PhpOffice\PhpWord\SimpleType\Jc;
  * regroupant Origine/Objet/Référence/Destinataire, Observations sur la forme/le fond et
  * Conclusion — chaque champ sur sa propre ligne.
  *
- * Le numéro d'avis ("Avis N°.../MESRS/DCUS/{année}") est laissé vide sur le document
- * généré : comme sur les fiches papier, il est attribué et complété à la main par la
- * DCUS. L'en-tête utilise directement resources/images/logo-mesrs.png (le logo officiel
+ * Le numéro d'avis ("Avis N°.../MESRS/DCUS/{année}") vient de AccordAppreciation::$avis,
+ * saisi par l'agent (l'identifiant unique de la fiche, pas la conclusion — voir plus bas) ;
+ * la Conclusion, elle, n'est plus saisie du tout : elle est entièrement générée à partir de
+ * Accord::$conclusion_appreciation (formule fixe imposée par la DCUS, seul l'intitulé de
+ * l'accord variant d'une fiche à l'autre). L'en-tête utilise directement
+ * resources/images/logo-mesrs.png (le logo officiel
  * MESRS — armoiries + "MINISTÈRE DE L'ENSEIGNEMENT SUPÉRIEUR ET DE LA RECHERCHE
  * SCIENTIFIQUE" + "RÉPUBLIQUE DU BÉNIN" déjà composés dans l'image, fourni par
  * l'utilisateur après deux tentatives précédentes avec des fichiers mal étiquetés pour
@@ -56,7 +60,7 @@ class FicheAppreciationGenerator
         $this->ajouterEnTete($section);
 
         $section->addText(
-            'Avis N° ______________ /MESRS/DCUS/'.now()->format('Y'),
+            'Avis N° '.$appreciation->avis.' /MESRS/DCUS/'.now()->format('Y'),
             ['bold' => true],
             ['alignment' => Jc::CENTER]
         );
@@ -92,7 +96,7 @@ class FicheAppreciationGenerator
             "Dans le cadre de l'objet suscité, la DCUS a procédé à une analyse minutieuse du projet et y a relevé les éléments d'appréciation ci-après :"
         );
         $this->ajouterLigneObservations($table, '2°) Observations sur le fond', $appreciation->observations_fond);
-        $this->ajouterLigneConclusion($table, $appreciation->avis);
+        $this->ajouterLigneConclusion($table, $accord);
 
         $section->addTextBreak(2);
         $section->addText('Rédigé par : '.$appreciation->redacteur->nom_complet, ['size' => 9, 'italic' => true]);
@@ -165,11 +169,11 @@ class FicheAppreciationGenerator
         $this->ajouterParagraphes($cellule, $texte);
     }
 
-    private function ajouterLigneConclusion(Table $table, ?string $avis): void
+    private function ajouterLigneConclusion(Table $table, Accord $accord): void
     {
         $table->addRow();
         $texteRun = $table->addCell(self::LARGEUR_CONTENU)->addTextRun();
         $texteRun->addText('Conclusion : ', ['bold' => true]);
-        $texteRun->addText($avis ?: '—');
+        $texteRun->addText($accord->conclusion_appreciation);
     }
 }

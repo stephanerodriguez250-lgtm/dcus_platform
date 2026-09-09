@@ -56,7 +56,7 @@ class FicheAppreciationGeneratorTest extends TestCase
             'accord_id' => $accord->id,
             'origine' => "Université d'Abomey-Calavi (UAC)",
             'objet' => "Etude et avis sur le projet d'accord-cadre de partenariat entre l'UAC et le PAC",
-            'avis' => 'Le processus de signature peut être enclenché, sous réserve de la prise en compte des observations faites.',
+            'avis' => '0053',
             'observations_forme' => 'Paginer le document.',
             'observations_fond' => 'Préciser la composition du comité de suivi.',
             'redige_par' => $redacteur->id,
@@ -74,10 +74,19 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($appreciation->origine, $texte);
         $this->assertStringContainsString($appreciation->objet, $texte);
         $this->assertStringContainsString($accord->reference, $texte);
-        $this->assertStringContainsString($appreciation->avis, $texte);
         $this->assertStringContainsString($appreciation->observations_forme, $texte);
         $this->assertStringContainsString($appreciation->observations_fond, $texte);
         $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure le logo du ministère.");
+
+        // Le numéro d'avis (identifiant de la fiche, saisi par l'agent) remplit le blanc en
+        // tête de document — ce n'est PAS la Conclusion.
+        $this->assertStringContainsString('Avis N° 0053 /MESRS/DCUS/', $texte);
+
+        // La Conclusion n'est plus saisie : elle est entièrement générée à partir de
+        // l'intitulé de l'accord (Accord::$conclusion_appreciation), avec la formulation fixe
+        // imposée par la DCUS.
+        $this->assertStringContainsString($accord->conclusion_appreciation, $texte);
+        $this->assertStringContainsString("le processus de signature de l'accord-cadre de partenariat entre l'UAC et le Port Autonome de Cotonou peut être enclenché, sous réserve de la prise en compte des observations faites.", $texte);
 
         // Le logo doit flotter (ancré en haut de la marge) plutôt qu'être une image en
         // ligne : c'est ce qui permet aux coordonnées de démarrer à la même hauteur que

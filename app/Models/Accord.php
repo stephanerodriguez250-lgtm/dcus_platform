@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class Accord extends Model
 {
@@ -113,5 +114,18 @@ class Accord extends Model
         return $this->duree_unite === 'ans'
             ? $this->date_signature->copy()->addYears($this->duree_valeur)
             : $this->date_signature->copy()->addMonths($this->duree_valeur);
+    }
+
+    /**
+     * Conclusion générée automatiquement pour la fiche d'appréciation : formulation fixe,
+     * imposée par la DCUS, où seul l'intitulé de l'accord varie. Elle ne se saisit plus
+     * manuellement (voir AccordAppreciation::$avis, qui sert désormais à autre chose : le
+     * numéro d'avis inscrit en tête de la fiche).
+     */
+    public function getConclusionAppreciationAttribute(): string
+    {
+        return "Au regard de tout ce qui précède, le processus de signature de l'"
+            .Str::lcfirst($this->titre)
+            .' peut être enclenché, sous réserve de la prise en compte des observations faites.';
     }
 }

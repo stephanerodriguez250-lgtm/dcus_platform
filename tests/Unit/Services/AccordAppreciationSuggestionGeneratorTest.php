@@ -21,7 +21,6 @@ class AccordAppreciationSuggestionGeneratorTest extends TestCase
         AccordAppreciation::factory()->create([
             'origine' => 'Université de Parakou',
             'objet' => 'Etude et avis sur un projet passé',
-            'avis' => 'Favorable.',
         ]);
         $accord = Accord::factory()->create([
             'titre' => "Accord-cadre de partenariat entre l'UAC et le PAC",
@@ -29,7 +28,7 @@ class AccordAppreciationSuggestionGeneratorTest extends TestCase
         ]);
 
         $resultatAttendu = [
-            'origine' => 'UAC', 'objet' => 'Objet généré', 'avis' => 'Avis généré',
+            'origine' => 'UAC', 'objet' => 'Objet généré',
             'observations_forme' => '- RAS', 'observations_fond' => '- RAS',
         ];
 

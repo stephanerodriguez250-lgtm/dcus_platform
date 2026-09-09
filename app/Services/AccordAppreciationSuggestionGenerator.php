@@ -12,9 +12,13 @@ use Throwable;
 /**
  * Rôle 1 de l'agent IA : à partir des fiches d'appréciation déjà rédigées par la DCUS
  * (utilisées comme exemples de style/critères) et du document de l'accord à apprécier,
- * suggère un contenu pour les 5 champs du formulaire d'appréciation. L'agent DCUS reste
- * libre de tout modifier avant d'enregistrer — cette suggestion n'est jamais enregistrée
- * telle quelle.
+ * suggère un contenu pour les 4 champs de contenu du formulaire d'appréciation (origine,
+ * objet, observations sur la forme, observations sur le fond). L'agent DCUS reste libre
+ * de tout modifier avant d'enregistrer — cette suggestion n'est jamais enregistrée telle
+ * quelle. Le numéro d'avis (identifiant de la fiche) et la Conclusion ne sont volontairement
+ * pas suggérés : le premier est un identifiant que seul l'agent peut attribuer, la seconde
+ * est entièrement générée à partir de l'intitulé de l'accord (voir
+ * Accord::$conclusion_appreciation), sans intervention de l'IA.
  */
 class AccordAppreciationSuggestionGenerator
 {
@@ -24,8 +28,7 @@ class AccordAppreciationSuggestionGenerator
 
     public function generer(Accord $accord): array
     {
-        $exemples = AccordAppreciation::whereNotNull('avis')
-            ->latest()
+        $exemples = AccordAppreciation::latest()
             ->limit(self::NOMBRE_EXEMPLES)
             ->get();
 
@@ -41,7 +44,6 @@ class AccordAppreciationSuggestionGenerator
             : $exemples->map(fn (AccordAppreciation $e) => implode("\n", [
                 "- Origine : {$e->origine}",
                 "  Objet : {$e->objet}",
-                "  Avis : {$e->avis}",
                 "  Observations sur la forme : {$e->observations_forme}",
                 "  Observations sur le fond : {$e->observations_fond}",
             ]))->implode("\n\n");
@@ -65,11 +67,11 @@ class AccordAppreciationSuggestionGenerator
 
             Rédige une nouvelle fiche d'appréciation pour cet accord. Réponds strictement en JSON,
             avec exactement ces clés : "origine" (l'institution béninoise à l'origine de la demande),
-            "objet" (une phrase décrivant l'objet de l'étude), "avis" (la conclusion/recommandation
-            de la DCUS, 1 à 3 phrases), "observations_forme" (observations sur la forme du document,
-            une ligne par point commençant par "- ", et "  - " pour un sous-point), "observations_fond"
-            (même format que observations_forme mais sur le fond). N'invente aucun article de loi
-            béninois précis si tu n'en es pas certain — reste général dans ce cas.
+            "objet" (une phrase décrivant l'objet de l'étude), "observations_forme" (observations
+            sur la forme du document, une ligne par point commençant par "- ", et "  - " pour un
+            sous-point), "observations_fond" (même format que observations_forme mais sur le fond).
+            N'invente aucun article de loi béninois précis si tu n'en es pas certain — reste général
+            dans ce cas.
             PROMPT;
     }
 

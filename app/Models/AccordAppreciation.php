@@ -5,6 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * $avis n'est PAS la conclusion de la fiche : c'est le numéro d'avis (identifiant unique de
+ * la fiche, ex. "0053"), saisi manuellement par l'agent et inscrit sur le document généré
+ * après "Avis N°". La Conclusion, elle, ne se saisit plus du tout : elle est générée à partir
+ * de l'accord (voir Accord::$conclusion_appreciation).
+ */
 class AccordAppreciation extends Model
 {
     use HasFactory;

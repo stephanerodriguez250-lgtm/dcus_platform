@@ -153,9 +153,13 @@
                         <div class="text-muted small fw-semibold text-uppercase mb-1">Objet</div>
                         <div>{{ $a->objet }}</div>
                     </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Numéro d'avis</div>
+                        <div>{{ $a->avis }}</div>
+                    </div>
                     <div class="col-12">
-                        <div class="text-muted small fw-semibold text-uppercase mb-1">Avis</div>
-                        <div style="white-space: pre-line;">{{ $a->avis }}</div>
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Conclusion</div>
+                        <div style="white-space: pre-line;">{{ $accord->conclusion_appreciation }}</div>
                     </div>
                     @if($a->observations_forme)
                     <div class="col-sm-6">

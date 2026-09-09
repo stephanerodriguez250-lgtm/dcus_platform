@@ -45,7 +45,7 @@ class AccordAppreciationController extends Controller
         $data = $request->validate([
             'origine' => 'required|string|max:255',
             'objet' => 'required|string',
-            'avis' => 'required|string',
+            'avis' => 'required|string|max:255',
             'observations_forme' => 'nullable|string',
             'observations_fond' => 'nullable|string',
         ]);
