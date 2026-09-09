@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ArchiveDossierPartage;
 use App\Models\ArchiveFichier;
 use App\Models\ArchiveFolder;
+use App\Models\ArchivePartage;
 use App\Models\User;
 use App\Notifications\DossierPartageNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -214,7 +215,7 @@ class ArchiveDossierPartageTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $this->assertSame(1, \App\Models\ArchivePartage::count());
+        $this->assertSame(1, ArchivePartage::count());
         $this->assertSame(1, ArchiveDossierPartage::count());
     }
 }

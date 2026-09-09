@@ -59,7 +59,9 @@
                 <tbody>
                     @forelse($sousDossiers as $sousDossier)
                     <tr>
-                        <td class="ps-4"></td>
+                        <td class="ps-4">
+                            <input type="checkbox" name="dossier_ids[]" value="{{ $sousDossier->id }}" form="partage-form">
+                        </td>
                         <td>
                             <a href="{{ route('archives.index', ['dossier' => $sousDossier->id]) }}" class="text-decoration-none">
                                 <i class="bi bi-folder-fill text-warning me-2"></i>{{ $sousDossier->nom }}
@@ -192,7 +194,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Partager les fichiers sélectionnés</h5>
+                <h5 class="modal-title">Partager la sélection</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
             <div class="modal-body">
