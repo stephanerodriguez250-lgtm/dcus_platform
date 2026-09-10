@@ -74,6 +74,17 @@
                                 Fichier actuel : {{ $accord->nom_fichier ?? '—' }}. Laissez vide pour le conserver.
                             </div>
                         </div>
+
+                        <div class="col-12">
+                            <hr>
+                            <label class="form-label fw-semibold">Confirmez votre mot de passe <span class="text-danger">*</span></label>
+                            <input type="password" name="password"
+                                   class="form-control @error('password') is-invalid @enderror" autocomplete="current-password">
+                            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">
+                                Toute modification d'un accord doit être confirmée par votre mot de passe.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">

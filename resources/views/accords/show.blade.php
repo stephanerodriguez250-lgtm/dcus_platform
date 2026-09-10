@@ -120,13 +120,9 @@
                 <a href="{{ route('accords.edit', $accord) }}" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-pencil me-1"></i>Modifier
                 </a>
-                <form method="POST" action="{{ route('accords.destroy', $accord) }}"
-                      onsubmit="return confirm('Supprimer cet accord ?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash me-1"></i>Supprimer
-                    </button>
-                </form>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#supprimerAccordModal">
+                    <i class="bi bi-trash me-1"></i>Supprimer
+                </button>
             </div>
             @endif
         </div>
@@ -352,6 +348,34 @@
         <a href="{{ route('accords.index') }}" class="btn btn-outline-secondary w-100">
             <i class="bi bi-arrow-left me-2"></i>Retour à la liste
         </a>
+    </div>
+</div>
+
+{{-- ================================================================
+     MODAL : Confirmer la suppression de l'accord
+================================================================ --}}
+<div class="modal fade" id="supprimerAccordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('accords.destroy', $accord) }}">
+                @csrf @method('DELETE')
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Supprimer cet accord ?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">Cette action est irréversible : l'accord, sa fiche d'appréciation et son rapport de conformité éventuels seront définitivement supprimés.</p>
+                    <label class="form-label fw-semibold">Confirmez votre mot de passe <span class="text-danger">*</span></label>
+                    <input type="password" name="password" class="form-control" autocomplete="current-password" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Supprimer définitivement
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection

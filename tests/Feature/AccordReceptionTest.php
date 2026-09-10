@@ -99,6 +99,7 @@ class AccordReceptionTest extends TestCase
             'date_arrivee' => $accord->date_arrivee->format('Y-m-d'),
             'heure_arrivee' => '09:00',
             'fichier' => UploadedFile::fake()->create('nouveau.pdf', 100, 'application/pdf'),
+            'password' => 'password',
         ]);
 
         $response->assertRedirect(route('accords.show', $accord));
@@ -108,6 +109,25 @@ class AccordReceptionTest extends TestCase
         Storage::disk('public')->assertExists($accord->chemin_fichier);
     }
 
+    public function test_updating_an_accord_requires_the_current_users_correct_password(): void
+    {
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create(['heure_arrivee' => '08:00:00']);
+
+        $response = $this->actingAs($secretaire)->put(route('accords.update', $accord), [
+            'titre' => $accord->titre,
+            'institution_partenaire' => $accord->institution_partenaire,
+            'reference' => $accord->reference,
+            'date_arrivee' => $accord->date_arrivee->format('Y-m-d'),
+            'heure_arrivee' => '09:00',
+            'password' => 'mauvais-mot-de-passe',
+        ]);
+
+        $response->assertSessionHasErrors('password');
+        $accord->refresh();
+        $this->assertStringStartsWith('08:00', $accord->heure_arrivee);
+    }
+
     public function test_deleting_an_accord_removes_its_stored_file(): void
     {
         Storage::fake('public');
@@ -115,9 +135,22 @@ class AccordReceptionTest extends TestCase
         $chemin = UploadedFile::fake()->create('accord.pdf', 100)->store('accords/fichiers', 'public');
         $accord = Accord::factory()->create(['chemin_fichier' => $chemin]);
 
-        $this->actingAs($secretaire)->delete(route('accords.destroy', $accord));
+        $this->actingAs($secretaire)->delete(route('accords.destroy', $accord), ['password' => 'password']);
 
         Storage::disk('public')->assertMissing($chemin);
         $this->assertDatabaseMissing('accords', ['id' => $accord->id]);
+    }
+
+    public function test_deleting_an_accord_requires_the_current_users_correct_password(): void
+    {
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create();
+
+        $response = $this->actingAs($secretaire)->delete(route('accords.destroy', $accord), [
+            'password' => 'mauvais-mot-de-passe',
+        ]);
+
+        $response->assertSessionHasErrors('password');
+        $this->assertDatabaseHas('accords', ['id' => $accord->id]);
     }
 }

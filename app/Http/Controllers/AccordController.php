@@ -113,6 +113,7 @@ class AccordController extends Controller
             'date_arrivee' => 'required|date',
             'heure_arrivee' => 'required|date_format:H:i',
             'fichier' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
+            'password' => ['required', 'current_password'],
         ]);
 
         if ($request->hasFile('fichier')) {
@@ -123,7 +124,7 @@ class AccordController extends Controller
             $data['chemin_fichier'] = $file->store('accords/fichiers', 'public');
             $data['nom_fichier'] = $file->getClientOriginalName();
         }
-        unset($data['fichier']);
+        unset($data['fichier'], $data['password']);
 
         $accord->update($data);
 
@@ -191,9 +192,11 @@ class AccordController extends Controller
     }
 
     // Suppression
-    public function destroy(Accord $accord)
+    public function destroy(Request $request, Accord $accord)
     {
         $this->authorize('delete', $accord);
+
+        $request->validate(['password' => ['required', 'current_password']]);
 
         if ($accord->chemin_fichier) {
             Storage::disk('public')->delete($accord->chemin_fichier);
