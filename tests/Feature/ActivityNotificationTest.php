@@ -65,7 +65,8 @@ class ActivityNotificationTest extends TestCase
 
         $this->actingAs($createur)->post('/accords', [
             'titre' => 'Convention UAC',
-            'institution_partenaire' => 'UAC',
+            'institution_origine' => 'UAC',
+            'institution_partenaire' => 'Université Paris-Saclay',
             'reference' => 'MESRS-2026/001',
             'fichier' => UploadedFile::fake()->create('accord.pdf', 100, 'application/pdf'),
         ]);

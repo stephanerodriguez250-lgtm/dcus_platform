@@ -33,7 +33,15 @@
                             @error('titre')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Université / Institution d'origine <span class="text-danger">*</span></label>
+                            <input type="text" name="institution_origine"
+                                   class="form-control @error('institution_origine') is-invalid @enderror"
+                                   value="{{ old('institution_origine', $accord->institution_origine) }}">
+                            @error('institution_origine')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Université / Institution partenaire <span class="text-danger">*</span></label>
                             <input type="text" name="institution_partenaire"
                                    class="form-control @error('institution_partenaire') is-invalid @enderror"
@@ -41,7 +49,7 @@
                             @error('institution_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Référence MESRS <span class="text-danger">*</span></label>
                             <input type="text" name="reference"
                                    class="form-control @error('reference') is-invalid @enderror"

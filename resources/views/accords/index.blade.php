@@ -45,7 +45,7 @@
     <div class="card-body py-3">
         <form method="GET" class="row g-2 align-items-end">
             <input type="hidden" name="etape" value="{{ request('etape') }}">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold text-muted">Rechercher</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -54,8 +54,17 @@
                            value="{{ request('search') }}">
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label small fw-semibold text-muted">Institution d'origine</label>
+                <select name="institution_origine" class="form-select">
+                    <option value="">Toutes</option>
+                    @foreach($institutionsOrigine as $institutionOrigine)
+                    <option value="{{ $institutionOrigine }}" @selected(request('institution_origine') === $institutionOrigine)>{{ $institutionOrigine }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted">Institution partenaire</label>
                 <select name="institution" class="form-select">
                     <option value="">Toutes</option>
                     @foreach($institutions as $institution)

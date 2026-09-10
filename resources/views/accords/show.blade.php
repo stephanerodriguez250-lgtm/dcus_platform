@@ -52,7 +52,11 @@
                 <!-- Infos principales -->
                 <div class="row g-3 mb-4">
                     <div class="col-sm-6">
-                        <div class="text-muted small fw-semibold text-uppercase mb-1">Université / Institution</div>
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Université / Institution d'origine</div>
+                        <div class="fw-semibold">{{ $accord->institution_origine ?? '—' }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">Université / Institution partenaire</div>
                         <div class="fw-semibold">{{ $accord->institution_partenaire }}</div>
                     </div>
                     <div class="col-sm-6">

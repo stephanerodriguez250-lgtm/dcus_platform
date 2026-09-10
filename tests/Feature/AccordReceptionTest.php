@@ -23,7 +23,8 @@ class AccordReceptionTest extends TestCase
 
         $response = $this->actingAs($secretaire)->post('/accords', [
             'titre' => 'Convention UAC',
-            'institution_partenaire' => 'UAC',
+            'institution_origine' => 'UAC',
+            'institution_partenaire' => 'Université Paris-Saclay',
             'reference' => 'MESRS-2026/001',
             'date_arrivee' => '2026-01-10',
             'heure_arrivee' => '14:30',
@@ -32,11 +33,27 @@ class AccordReceptionTest extends TestCase
 
         $accord = Accord::first();
         $response->assertRedirect(route('accords.show', $accord));
+        $this->assertSame('UAC', $accord->institution_origine);
         $this->assertSame('2026-01-10', $accord->date_arrivee->format('Y-m-d'));
         $this->assertStringStartsWith('14:30', $accord->heure_arrivee);
         Storage::disk('public')->assertExists($accord->chemin_fichier);
         $this->assertSame('accord.pdf', $accord->nom_fichier);
         $this->assertDatabaseHas('accord_historiques', ['accord_id' => $accord->id, 'evenement' => 'Accord reçu']);
+    }
+
+    public function test_institution_origine_is_required_on_reception(): void
+    {
+        $secretaire = User::factory()->secretaire()->create();
+
+        $response = $this->actingAs($secretaire)->post('/accords', [
+            'titre' => 'Convention UAC',
+            'institution_partenaire' => 'Université Paris-Saclay',
+            'reference' => 'MESRS-2026/005',
+            'fichier' => UploadedFile::fake()->create('accord.pdf', 200, 'application/pdf'),
+        ]);
+
+        $response->assertSessionHasErrors('institution_origine');
+        $this->assertSame(0, Accord::count());
     }
 
     public function test_date_and_heure_arrivee_default_to_now_when_left_empty(): void
@@ -48,7 +65,8 @@ class AccordReceptionTest extends TestCase
 
         $this->actingAs($secretaire)->post('/accords', [
             'titre' => 'Convention UAC',
-            'institution_partenaire' => 'UAC',
+            'institution_origine' => 'UAC',
+            'institution_partenaire' => 'Université Paris-Saclay',
             'reference' => 'MESRS-2026/002',
             'fichier' => UploadedFile::fake()->create('accord.pdf', 200, 'application/pdf'),
         ]);
@@ -94,6 +112,7 @@ class AccordReceptionTest extends TestCase
 
         $response = $this->actingAs($secretaire)->put(route('accords.update', $accord), [
             'titre' => $accord->titre,
+            'institution_origine' => $accord->institution_origine,
             'institution_partenaire' => $accord->institution_partenaire,
             'reference' => $accord->reference,
             'date_arrivee' => $accord->date_arrivee->format('Y-m-d'),
@@ -116,6 +135,7 @@ class AccordReceptionTest extends TestCase
 
         $response = $this->actingAs($secretaire)->put(route('accords.update', $accord), [
             'titre' => $accord->titre,
+            'institution_origine' => $accord->institution_origine,
             'institution_partenaire' => $accord->institution_partenaire,
             'reference' => $accord->reference,
             'date_arrivee' => $accord->date_arrivee->format('Y-m-d'),

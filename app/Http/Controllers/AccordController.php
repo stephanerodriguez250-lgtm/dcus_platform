@@ -21,12 +21,17 @@ class AccordController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('titre', 'like', '%'.$request->search.'%')
                     ->orWhere('reference', 'like', '%'.$request->search.'%')
+                    ->orWhere('institution_origine', 'like', '%'.$request->search.'%')
                     ->orWhere('institution_partenaire', 'like', '%'.$request->search.'%');
             });
         }
 
         if ($request->filled('institution')) {
             $query->where('institution_partenaire', $request->institution);
+        }
+
+        if ($request->filled('institution_origine')) {
+            $query->where('institution_origine', $request->institution_origine);
         }
 
         if ($request->filled('date_debut')) {
@@ -59,7 +64,12 @@ class AccordController extends Controller
             ->orderBy('institution_partenaire')
             ->pluck('institution_partenaire');
 
-        return view('accords.index', compact('accords', 'etapeCounts', 'institutions'));
+        $institutionsOrigine = Accord::whereNotNull('institution_origine')
+            ->distinct()
+            ->orderBy('institution_origine')
+            ->pluck('institution_origine');
+
+        return view('accords.index', compact('accords', 'etapeCounts', 'institutions', 'institutionsOrigine'));
     }
 
     // Formulaire de création
@@ -77,6 +87,7 @@ class AccordController extends Controller
 
         $data = $request->validate([
             'titre' => 'required|string|max:255',
+            'institution_origine' => 'required|string|max:255',
             'institution_partenaire' => 'required|string|max:255',
             'reference' => 'required|string|max:255',
             'date_arrivee' => 'nullable|date',
@@ -133,6 +144,7 @@ class AccordController extends Controller
 
         $data = $request->validate([
             'titre' => 'required|string|max:255',
+            'institution_origine' => 'required|string|max:255',
             'institution_partenaire' => 'required|string|max:255',
             'reference' => 'required|string|max:255',
             'date_arrivee' => 'required|date',

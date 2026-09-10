@@ -51,13 +51,26 @@ class AccordListFilterTest extends TestCase
         $this->assertFalse($ids->contains($ancien->id));
     }
 
-    public function test_filters_accords_by_institution_dorigine(): void
+    public function test_filters_accords_by_institution_partenaire(): void
     {
         $user = User::factory()->create();
         $uac = Accord::factory()->create(['institution_partenaire' => 'UAC']);
         $unstim = Accord::factory()->create(['institution_partenaire' => 'UNSTIM']);
 
         $response = $this->actingAs($user)->get(route('accords.index', ['institution' => 'UAC']));
+
+        $ids = $response->viewData('accords')->pluck('id');
+        $this->assertTrue($ids->contains($uac->id));
+        $this->assertFalse($ids->contains($unstim->id));
+    }
+
+    public function test_filters_accords_by_institution_dorigine(): void
+    {
+        $user = User::factory()->create();
+        $uac = Accord::factory()->create(['institution_origine' => 'UAC']);
+        $unstim = Accord::factory()->create(['institution_origine' => 'UNSTIM']);
+
+        $response = $this->actingAs($user)->get(route('accords.index', ['institution_origine' => 'UAC']));
 
         $ids = $response->viewData('accords')->pluck('id');
         $this->assertTrue($ids->contains($uac->id));
@@ -75,5 +88,18 @@ class AccordListFilterTest extends TestCase
 
         $institutions = $response->viewData('institutions');
         $this->assertSame(['UAC', 'UNSTIM'], $institutions->sort()->values()->all());
+    }
+
+    public function test_index_exposes_the_distinct_list_of_institutions_dorigine_for_the_filter_dropdown(): void
+    {
+        $user = User::factory()->create();
+        Accord::factory()->create(['institution_origine' => 'UAC']);
+        Accord::factory()->create(['institution_origine' => 'UAC']);
+        Accord::factory()->create(['institution_origine' => 'UPN']);
+
+        $response = $this->actingAs($user)->get(route('accords.index'));
+
+        $institutionsOrigine = $response->viewData('institutionsOrigine');
+        $this->assertSame(['UAC', 'UPN'], $institutionsOrigine->sort()->values()->all());
     }
 }

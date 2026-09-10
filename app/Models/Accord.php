@@ -13,7 +13,7 @@ class Accord extends Model
     use HasFactory, HasHashedRouteKey;
 
     protected $fillable = [
-        'titre', 'institution_partenaire', 'reference',
+        'titre', 'institution_origine', 'institution_partenaire', 'reference',
         'date_arrivee', 'heure_arrivee',
         'chemin_fichier', 'nom_fichier',
         'envoye_le',

@@ -20,6 +20,7 @@ class AccordFactory extends Factory
     {
         return [
             'titre' => fake()->sentence(5),
+            'institution_origine' => fake()->company(),
             'institution_partenaire' => fake()->company(),
             'reference' => 'MESRS-'.fake()->unique()->numerify('####/####'),
             'date_arrivee' => fake()->date(),

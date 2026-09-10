@@ -37,16 +37,26 @@
                             <div class="form-text">Commencez par « Accord... » et citez les deux parties (ex: « Accord-cadre entre X et Y ») — ce texte est repris tel quel dans le titre de la fiche d'appréciation.</div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Université / Institution d'origine <span class="text-danger">*</span></label>
+                            <input type="text" name="institution_origine"
+                                   class="form-control @error('institution_origine') is-invalid @enderror"
+                                   value="{{ old('institution_origine') }}"
+                                   placeholder="Ex: UAC, UNSTIM...">
+                            @error('institution_origine')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">L'université béninoise qui initie l'accord.</div>
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Université / Institution partenaire <span class="text-danger">*</span></label>
                             <input type="text" name="institution_partenaire"
                                    class="form-control @error('institution_partenaire') is-invalid @enderror"
                                    value="{{ old('institution_partenaire') }}"
-                                   placeholder="Ex: Université Paris-Saclay, UAC...">
+                                   placeholder="Ex: Université Paris-Saclay...">
                             @error('institution_partenaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Référence MESRS <span class="text-danger">*</span></label>
                             <input type="text" name="reference"
                                    class="form-control @error('reference') is-invalid @enderror"
