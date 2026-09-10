@@ -25,6 +25,26 @@ class AccordController extends Controller
             });
         }
 
+        if ($request->filled('institution')) {
+            $query->where('institution_partenaire', $request->institution);
+        }
+
+        if ($request->filled('date_debut')) {
+            $query->whereDate('date_arrivee', '>=', $request->date_debut);
+        }
+
+        if ($request->filled('date_fin')) {
+            $query->whereDate('date_arrivee', '<=', $request->date_fin);
+        }
+
+        match ($request->input('etape')) {
+            'recu' => $query->doesntHave('appreciation'),
+            'apprecie' => $query->has('appreciation')->whereNull('envoye_le'),
+            'envoye' => $query->whereNotNull('envoye_le')->whereNull('date_signature'),
+            'signe' => $query->whereNotNull('date_signature'),
+            default => null,
+        };
+
         $accords = $query->paginate(10)->withQueryString();
 
         $etapeCounts = [
@@ -34,7 +54,12 @@ class AccordController extends Controller
             'signe' => Accord::whereNotNull('date_signature')->count(),
         ];
 
-        return view('accords.index', compact('accords', 'etapeCounts'));
+        $institutions = Accord::whereNotNull('institution_partenaire')
+            ->distinct()
+            ->orderBy('institution_partenaire')
+            ->pluck('institution_partenaire');
+
+        return view('accords.index', compact('accords', 'etapeCounts', 'institutions'));
     }
 
     // Formulaire de création

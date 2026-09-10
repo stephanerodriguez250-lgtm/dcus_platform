@@ -24,14 +24,18 @@
     </div>
 </div>
 
-<!-- Statistiques par étape -->
+<!-- Statistiques par étape (cliquables : filtrent la liste ci-dessous) -->
 <div class="row g-2 mb-4">
     @foreach(\App\Models\Accord::$etapeLabels as $key => $label)
+    @php $estActif = request('etape') === $key; @endphp
     <div class="col-6 col-md-3">
-        <div class="card text-center py-2 px-1 h-100">
-            <div class="fw-bold fs-5">{{ $etapeCounts[$key] }}</div>
-            <div class="text-muted" style="font-size:0.72rem;">{{ $label }}</div>
-        </div>
+        <a href="{{ route('accords.index', array_merge(request()->except(['etape', 'page']), $estActif ? [] : ['etape' => $key])) }}"
+           class="text-decoration-none">
+            <div class="card text-center py-2 px-1 h-100 {{ $estActif ? 'border-primary border-2' : '' }}">
+                <div class="fw-bold fs-5 {{ $estActif ? 'text-primary' : '' }}">{{ $etapeCounts[$key] }}</div>
+                <div class="{{ $estActif ? 'text-primary fw-semibold' : 'text-muted' }}" style="font-size:0.72rem;">{{ $label }}</div>
+            </div>
+        </a>
     </div>
     @endforeach
 </div>
@@ -40,7 +44,8 @@
 <div class="card mb-4">
     <div class="card-body py-3">
         <form method="GET" class="row g-2 align-items-end">
-            <div class="col-md-8">
+            <input type="hidden" name="etape" value="{{ request('etape') }}">
+            <div class="col-md-4">
                 <label class="form-label small fw-semibold text-muted">Rechercher</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -49,11 +54,26 @@
                            value="{{ request('search') }}">
                 </div>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Institution d'origine</label>
+                <select name="institution" class="form-select">
+                    <option value="">Toutes</option>
+                    @foreach($institutions as $institution)
+                    <option value="{{ $institution }}" @selected(request('institution') === $institution)>{{ $institution }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="col-md-2">
-                <a href="{{ route('accords.index') }}" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+                <label class="form-label small fw-semibold text-muted">Arrivé du</label>
+                <input type="date" name="date_debut" class="form-control" value="{{ request('date_debut') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted">au</label>
+                <input type="date" name="date_fin" class="form-control" value="{{ request('date_fin') }}">
+            </div>
+            <div class="col-md-1 d-flex flex-column gap-1">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+                <a href="{{ route('accords.index') }}" class="btn btn-outline-secondary btn-sm">Réinit.</a>
             </div>
         </form>
     </div>
@@ -100,14 +120,11 @@
                                class="btn btn-sm btn-outline-secondary me-1" title="Modifier">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form method="POST" action="{{ route('accords.destroy', $accord) }}"
-                                  class="d-inline"
-                                  onsubmit="return confirm('Supprimer cet accord ?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer"
+                                    onclick="document.getElementById('formSupprimerAccord').action = '{{ route('accords.destroy', $accord) }}'"
+                                    data-bs-toggle="modal" data-bs-target="#supprimerAccordModal">
+                                <i class="bi bi-trash"></i>
+                            </button>
                             @endif
                         </td>
                     </tr>
@@ -136,5 +153,34 @@
         {{ $accords->links() }}
     </div>
     @endif
+</div>
+
+{{-- ================================================================
+     MODAL : Confirmer la suppression d'un accord (formulaire partagé,
+     l'action est réécrite dynamiquement par le bouton "Supprimer" cliqué)
+================================================================ --}}
+<div class="modal fade" id="supprimerAccordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="formSupprimerAccord">
+                @csrf @method('DELETE')
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Supprimer cet accord ?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">Cette action est irréversible : l'accord, sa fiche d'appréciation et son rapport de conformité éventuels seront définitivement supprimés.</p>
+                    <label class="form-label fw-semibold">Confirmez votre mot de passe <span class="text-danger">*</span></label>
+                    <input type="password" name="password" class="form-control" autocomplete="current-password" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Supprimer définitivement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection
