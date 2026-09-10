@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Accord;
 use App\Models\AccordAppreciation;
+use App\Services\Concerns\AjoutePagination;
 use App\Services\Concerns\RendDesParagraphesAvecPuces;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -43,7 +44,7 @@ use PhpOffice\PhpWord\SimpleType\Jc;
  */
 class FicheAppreciationGenerator
 {
-    use RendDesParagraphesAvecPuces;
+    use AjoutePagination, RendDesParagraphesAvecPuces;
 
     private const LARGEUR_CONTENU = 10000;
 
@@ -57,6 +58,7 @@ class FicheAppreciationGenerator
         // largeur utile (page ~11905 twips - marges) pour ne pas déborder/tronquer le texte.
         $section = $phpWord->addSection(['marginTop' => 600, 'marginLeft' => 900, 'marginRight' => 900, 'marginBottom' => 900]);
 
+        $this->ajouterPagination($section);
         $this->ajouterEnTete($section);
 
         $section->addText(

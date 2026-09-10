@@ -25,6 +25,16 @@ class FicheAppreciationGeneratorTest extends TestCase
         return $xml;
     }
 
+    private function piedDePage(string $chemin): string
+    {
+        $zip = new ZipArchive;
+        $zip->open(Storage::disk('public')->path($chemin));
+        $xml = $zip->getFromName('word/footer1.xml');
+        $zip->close();
+
+        return (string) $xml;
+    }
+
     private function contientUneImage(string $chemin): bool
     {
         $zip = new ZipArchive;
@@ -127,6 +137,19 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertNotFalse($positionIntro);
         $this->assertGreaterThan($positionTableau, $positionIntro, 'La phrase introductive doit être dans le tableau.');
         $this->assertLessThan($positionObservationsForme, $positionIntro, 'La phrase introductive doit précéder "1°) Observations sur la forme".');
+    }
+
+    public function test_le_document_est_pagine_automatiquement(): void
+    {
+        Storage::fake('public');
+
+        $appreciation = AccordAppreciation::factory()->create();
+
+        $chemin = (new FicheAppreciationGenerator)->generer($appreciation);
+        $piedDePage = $this->piedDePage($chemin);
+
+        $this->assertStringContainsString('PAGE', $piedDePage);
+        $this->assertStringContainsString('NUMPAGES', $piedDePage);
     }
 
     public function test_les_lignes_avec_puce_deviennent_des_listes_a_puces_avec_sous_niveaux(): void

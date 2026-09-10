@@ -25,6 +25,16 @@ class RapportConformiteGeneratorTest extends TestCase
         return $xml;
     }
 
+    private function piedDePage(string $chemin): string
+    {
+        $zip = new ZipArchive;
+        $zip->open(Storage::disk('public')->path($chemin));
+        $xml = $zip->getFromName('word/footer1.xml');
+        $zip->close();
+
+        return (string) $xml;
+    }
+
     public function test_genere_un_rapport_word_avec_le_resume_et_les_points(): void
     {
         Storage::fake('public');
@@ -53,5 +63,18 @@ class RapportConformiteGeneratorTest extends TestCase
         $this->assertStringContainsString('Pagination corrigée', $texte);
         $this->assertStringContainsString('Article 8 non renommé', $texte);
         $this->assertMatchesRegularExpression('/<w:ilvl w:val="0"\/>/', $texte);
+    }
+
+    public function test_le_document_est_pagine_automatiquement(): void
+    {
+        Storage::fake('public');
+
+        $rapport = AccordRapportConformite::factory()->create();
+
+        $chemin = (new RapportConformiteGenerator)->generer($rapport);
+        $piedDePage = $this->piedDePage($chemin);
+
+        $this->assertStringContainsString('PAGE', $piedDePage);
+        $this->assertStringContainsString('NUMPAGES', $piedDePage);
     }
 }

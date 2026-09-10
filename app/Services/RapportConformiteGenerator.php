@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AccordRapportConformite;
+use App\Services\Concerns\AjoutePagination;
 use App\Services\Concerns\RendDesParagraphesAvecPuces;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -20,7 +21,7 @@ use PhpOffice\PhpWord\SimpleType\Jc;
  */
 class RapportConformiteGenerator
 {
-    use RendDesParagraphesAvecPuces;
+    use AjoutePagination, RendDesParagraphesAvecPuces;
 
     public function generer(AccordRapportConformite $rapport): string
     {
@@ -28,6 +29,8 @@ class RapportConformiteGenerator
 
         $phpWord = new PhpWord;
         $section = $phpWord->addSection();
+
+        $this->ajouterPagination($section);
 
         $section->addText('RAPPORT DE CONFORMITÉ', ['bold' => true, 'size' => 16], ['alignment' => Jc::CENTER]);
         $section->addText(
