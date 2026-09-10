@@ -78,6 +78,14 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($appreciation->observations_fond, $texte);
         $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure le logo du ministère.");
 
+        // Coordonnées de l'en-tête (élément de droite), alignées sur le vrai en-tête MESRS
+        // observé dans les fiches DCUS réelles fournies par l'utilisateur.
+        $this->assertStringContainsString('Cité Ministérielle-Bâtiment F', $texte);
+        $this->assertStringContainsString('Qtier Ahouanlêko, 12', $texte); // "12ème Arrondissement" (accents fragment sensitive)
+        $this->assertStringContainsString('Adresse postale : 01 BP 348 Cotonou', $texte);
+        $this->assertStringContainsString('+229 01 21 32 88 63', $texte); // "Téléphone : ..." (accents fragment sensitive)
+        $this->assertStringContainsString('contact.mesrs@gouv.bj', $texte);
+
         // Le numéro d'avis (identifiant de la fiche, saisi par l'agent) remplit le blanc en
         // tête de document — ce n'est PAS la Conclusion.
         $this->assertStringContainsString('Avis N° 0053 /MESRS/DCUS/', $texte);

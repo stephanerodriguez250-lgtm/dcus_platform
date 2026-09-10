@@ -3,34 +3,34 @@
 namespace App\Services;
 
 use App\Models\Accord;
-use App\Models\AccordAppreciation;
+use App\Models\AccordAppreciationExemple;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\IOFactory;
 use Throwable;
 
 /**
- * Rôle 1 de l'agent IA : à partir des fiches d'appréciation déjà rédigées par la DCUS
- * (utilisées comme exemples de style/critères) et du document de l'accord à apprécier,
- * suggère un contenu pour les 4 champs de contenu du formulaire d'appréciation (origine,
- * objet, observations sur la forme, observations sur le fond). L'agent DCUS reste libre
- * de tout modifier avant d'enregistrer — cette suggestion n'est jamais enregistrée telle
- * quelle. Le numéro d'avis (identifiant de la fiche) et la Conclusion ne sont volontairement
- * pas suggérés : le premier est un identifiant que seul l'agent peut attribuer, la seconde
- * est entièrement générée à partir de l'intitulé de l'accord (voir
- * Accord::$conclusion_appreciation), sans intervention de l'IA.
+ * Rôle 1 de l'agent IA : à partir d'exemples de fiches d'appréciation FIXES, choisis
+ * manuellement par la DCUS (App\Models\AccordAppreciationExemple, voir
+ * Database\Seeders\AccordAppreciationExempleSeeder), et du document de l'accord à
+ * apprécier, suggère un contenu pour les 4 champs de contenu du formulaire d'appréciation
+ * (origine, objet, observations sur la forme, observations sur le fond). Ces exemples ne
+ * varient plus avec les appréciations réellement saisies par les agents (comportement
+ * précédent : "les 5 dernières appréciations") — un choix explicite de la DCUS pour garder
+ * un style de référence stable et maîtrisé plutôt que de dériver au fil de l'usage.
+ * L'agent DCUS reste libre de tout modifier avant d'enregistrer — cette suggestion n'est
+ * jamais enregistrée telle quelle. Le numéro d'avis (identifiant de la fiche) et la
+ * Conclusion ne sont volontairement pas suggérés : le premier est un identifiant que seul
+ * l'agent peut attribuer, la seconde est entièrement générée à partir de l'intitulé de
+ * l'accord (voir Accord::$conclusion_appreciation), sans intervention de l'IA.
  */
 class AccordAppreciationSuggestionGenerator
 {
-    private const NOMBRE_EXEMPLES = 5;
-
     public function __construct(private readonly GeminiClient $gemini) {}
 
     public function generer(Accord $accord): array
     {
-        $exemples = AccordAppreciation::latest()
-            ->limit(self::NOMBRE_EXEMPLES)
-            ->get();
+        $exemples = AccordAppreciationExemple::orderBy('ordre')->get();
 
         $prompt = $this->construirePrompt($accord, $exemples);
 
@@ -41,7 +41,7 @@ class AccordAppreciationSuggestionGenerator
     {
         $exemplesTexte = $exemples->isEmpty()
             ? '(Aucun exemple précédent disponible.)'
-            : $exemples->map(fn (AccordAppreciation $e) => implode("\n", [
+            : $exemples->map(fn (AccordAppreciationExemple $e) => implode("\n", [
                 "- Origine : {$e->origine}",
                 "  Objet : {$e->objet}",
                 "  Observations sur la forme : {$e->observations_forme}",

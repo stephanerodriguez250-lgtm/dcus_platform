@@ -137,8 +137,11 @@ class FicheAppreciationGenerator
             ]);
         }
 
-        $section->addText('01 BP 348 Cotonou', ['size' => 8], ['alignment' => Jc::END]);
-        $section->addText('Tél. +229 21 30 53 93', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('Cité Ministérielle-Bâtiment F', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('Qtier Ahouanlêko, 12ème Arrondissement', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('Adresse postale : 01 BP 348 Cotonou', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('Téléphone : +229 01 21 32 88 63', ['size' => 8], ['alignment' => Jc::END]);
+        $section->addText('contact.mesrs@gouv.bj', ['size' => 8], ['alignment' => Jc::END]);
         $section->addText('www.enseignementsuperieur.gouv.bj', ['size' => 8], ['alignment' => Jc::END]);
         $section->addTextBreak(1);
         $section->addText(

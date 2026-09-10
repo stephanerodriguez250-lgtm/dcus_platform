@@ -46,5 +46,7 @@ class DatabaseSeeder extends Seeder
                 'actif' => true,
             ]));
         }
+
+        $this->call(AccordAppreciationExempleSeeder::class);
     }
 }
