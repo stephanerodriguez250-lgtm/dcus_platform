@@ -75,7 +75,12 @@ class AccordAvisMesrsController extends Controller
         }
 
         $data = $request->validate([
-            'chemin_fiche_ministere' => 'required|string',
+            // Restreint volontairement au dossier alimenté par suggerer() : sans cette
+            // contrainte, un agent pourrait faire pointer ce champ (une simple valeur postée)
+            // vers n'importe quel fichier existant du disque public (document signé d'un autre
+            // accord, archive d'un autre utilisateur...), qui serait ensuite supprimé par la
+            // purge de l'"ancien" fichier lors d'une resoumission ultérieure.
+            'chemin_fiche_ministere' => ['required', 'string', 'regex:/^accords\/avis-mesrs\/[A-Za-z0-9._-]+$/'],
             'nom_fiche_ministere' => 'required|string|max:255',
             'observations_forme' => 'nullable|string',
             'observations_fond' => 'nullable|string',

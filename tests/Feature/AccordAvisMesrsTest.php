@@ -226,6 +226,30 @@ class AccordAvisMesrsTest extends TestCase
         Storage::disk('public')->assertMissing($ancienneFicheWord);
     }
 
+    public function test_store_rejects_a_chemin_fiche_ministere_outside_the_avis_mesrs_directory(): void
+    {
+        Storage::fake('public');
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create();
+        AccordAppreciation::factory()->create(['accord_id' => $accord->id]);
+
+        // Un fichier qui existe réellement sur le disque, mais ailleurs (ex. le document signé
+        // d'un AUTRE accord) — ne doit jamais pouvoir être référencé via ce champ, sans quoi une
+        // resoumission ultérieure avec un chemin différent provoquerait sa suppression (voir le
+        // test suivant).
+        $cheminEtranger = UploadedFile::fake()->create('signe.pdf', 10, 'application/pdf')
+            ->store('accords/signes', 'public');
+
+        $response = $this->actingAs($secretaire)->post(route('accords.avis-mesrs.store', $accord), [
+            'chemin_fiche_ministere' => $cheminEtranger,
+            'nom_fiche_ministere' => 'signe.pdf',
+        ]);
+
+        $response->assertSessionHasErrors('chemin_fiche_ministere');
+        $this->assertNull($accord->fresh()->appreciation->avis_mesrs_valide_le);
+        Storage::disk('public')->assertExists($cheminEtranger);
+    }
+
     public function test_agent_without_authorization_cannot_validate_the_avis(): void
     {
         $agent = User::factory()->create(['role' => 'agent']);
