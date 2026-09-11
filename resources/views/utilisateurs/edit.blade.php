@@ -69,8 +69,11 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Téléphone</label>
-                            <input type="text" name="telephone" class="form-control"
+                            <input type="text" name="telephone" inputmode="numeric" pattern="[0-9]*"
+                                   class="form-control @error('telephone') is-invalid @enderror"
                                    value="{{ old('telephone', $utilisateur->telephone) }}">
+                            @error('telephone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">Chiffres uniquement.</div>
                         </div>
 
                         <div class="col-12">

@@ -20,7 +20,7 @@ class ProfileController extends Controller
         $data = $request->validate([
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
-            'telephone' => 'nullable|string|max:20',
+            'telephone' => 'nullable|digits_between:1,20',
         ]);
 
         // Changement de mot de passe optionnel

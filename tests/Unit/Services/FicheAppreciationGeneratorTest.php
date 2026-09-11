@@ -35,6 +35,16 @@ class FicheAppreciationGeneratorTest extends TestCase
         return (string) $xml;
     }
 
+    private function stylesDocx(string $chemin): string
+    {
+        $zip = new ZipArchive;
+        $zip->open(Storage::disk('public')->path($chemin));
+        $xml = $zip->getFromName('word/styles.xml');
+        $zip->close();
+
+        return (string) $xml;
+    }
+
     private function contientUneImage(string $chemin): bool
     {
         $zip = new ZipArchive;
@@ -150,6 +160,27 @@ class FicheAppreciationGeneratorTest extends TestCase
 
         $this->assertStringContainsString('PAGE', $piedDePage);
         $this->assertStringContainsString('NUMPAGES', $piedDePage);
+    }
+
+    public function test_le_document_utilise_trebuchet_ms_avec_le_titre_en_plus_grand(): void
+    {
+        Storage::fake('public');
+
+        $accord = Accord::factory()->create(['titre' => "Accord-cadre de partenariat entre l'UAC et le PAC"]);
+        $appreciation = AccordAppreciation::factory()->create(['accord_id' => $accord->id]);
+
+        $chemin = (new FicheAppreciationGenerator)->generer($appreciation);
+        $styles = $this->stylesDocx($chemin);
+        $texte = $this->texteDocx($chemin);
+
+        // Police et taille par défaut du document entier : Trebuchet MS 12 (w:sz est en
+        // demi-points, donc 12pt = 24).
+        $this->assertStringContainsString('w:ascii="Trebuchet MS"', $styles);
+        $this->assertStringContainsString('w:sz w:val="24"', $styles);
+
+        // Le titre du document ("FICHE D'APPRÉCIATION...") doit être en 14pt (w:sz val=28) —
+        // la seule taille 14 utilisée dans tout le document.
+        $this->assertStringContainsString('w:sz w:val="28"', $texte);
     }
 
     public function test_les_lignes_avec_puce_deviennent_des_listes_a_puces_avec_sous_niveaux(): void

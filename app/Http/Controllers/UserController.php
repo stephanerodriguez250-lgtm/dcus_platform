@@ -70,7 +70,7 @@ class UserController extends Controller
             'role' => 'required|in:admin,secretaire,agent',
             'service' => 'nullable|in:'.implode(',', array_keys(User::$services)),
             'poste' => 'nullable|string|max:150',
-            'telephone' => 'nullable|string|max:20',
+            'telephone' => 'nullable|digits_between:1,20',
             'password' => 'nullable|min:8|confirmed',
         ]);
 

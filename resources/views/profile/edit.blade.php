@@ -69,9 +69,12 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Téléphone</label>
-                                <input type="text" name="telephone" class="form-control"
+                                <input type="text" name="telephone" inputmode="numeric" pattern="[0-9]*"
+                                       class="form-control @error('telephone') is-invalid @enderror"
                                        value="{{ old('telephone', $user->telephone) }}"
-                                       placeholder="+229 ...">
+                                       placeholder="Ex: 0121328863">
+                                @error('telephone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="form-text">Chiffres uniquement.</div>
                             </div>
                         </div>
                     </div>
