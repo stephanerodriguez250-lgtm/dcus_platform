@@ -42,36 +42,27 @@ trait ConstruitDocumentDcus
     }
 
     /**
-     * En-tête ministériel sans tableau ni tabulation : le logo flotte, ancré en haut à
-     * gauche de la marge (positionnement relatif, pas une tabulation absolue), pendant que
-     * les coordonnées restent de simples paragraphes alignés à droite (Jc::END) — leur
-     * position s'adapte donc toujours à la largeur utile réelle et ne peut pas déborder,
-     * contrairement à l'ancienne technique par tabulation qui plaçait le texte à une
-     * position fixe en twips (source du débordement observé précédemment). Le logo flottant
-     * sort du flux normal du texte : les deux blocs démarrent ainsi à la même hauteur, sur
-     * la même "ligne" d'en-tête, sans être composés dans une seule et même ligne de texte.
+     * En-tête ministériel : une unique image officielle fournie par l'utilisateur (armoiries +
+     * nom du ministère + coordonnées, déjà composés dans le fichier lui-même), insérée en
+     * ligne sur toute la largeur utile de la page — remplace l'ancienne composition par logo
+     * flottant + paragraphes de coordonnées alignés à droite, devenue inutile puisque plus
+     * rien ne doit être aligné à côté de l'image.
      */
     private function ajouterEnTete(Section $section): void
     {
-        $cheminLogo = resource_path('images/logo-mesrs.png');
-        if (is_file($cheminLogo)) {
-            $section->addImage($cheminLogo, [
-                'width' => 262,
-                'height' => 60,
-                'wrappingStyle' => 'square',
-                'positioning' => 'relative',
-                'posHorizontalRel' => 'margin',
-                'posHorizontal' => 'left',
-                'posVerticalRel' => 'margin',
-                'posVertical' => 'top',
+        $cheminEntete = resource_path('images/entete-mesrs.png');
+        if (is_file($cheminEntete)) {
+            $section->addImage($cheminEntete, [
+                // Même largeur que le tableau (LARGEUR_CONTENU = 10000 twips = 500pt), pour
+                // rester confortablement à l'intérieur de la largeur utile de la page et garder
+                // une cohérence visuelle avec le reste du document. Hauteur dérivée du ratio
+                // réel du fichier (1092x159px) pour ne pas le déformer.
+                'width' => 500,
+                'height' => 72.8,
+                'alignment' => Jc::CENTER,
             ]);
         }
 
-        $section->addText('01 BP 348 Cotonou', ['size' => 8], ['alignment' => Jc::END]);
-        $section->addText('Tél.: +229 21 30 5393', ['size' => 8], ['alignment' => Jc::END]);
-        $section->addText('Fax : +229 21 324188', ['size' => 8], ['alignment' => Jc::END]);
-        $section->addText('contact.mesrs@gouv.bj', ['size' => 8], ['alignment' => Jc::END]);
-        $section->addText('www.enseignementsuperieur.gouv.bj', ['size' => 8], ['alignment' => Jc::END]);
         $section->addTextBreak(1);
         $section->addText(
             'Abomey-Calavi, le '.now()->locale('fr')->translatedFormat('d F Y'),

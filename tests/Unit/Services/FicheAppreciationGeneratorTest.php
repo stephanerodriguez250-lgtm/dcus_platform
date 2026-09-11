@@ -96,14 +96,12 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($accord->reference, $texte);
         $this->assertStringContainsString($appreciation->observations_forme, $texte);
         $this->assertStringContainsString($appreciation->observations_fond, $texte);
-        $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure le logo du ministère.");
+        $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit être l'image officielle du ministère.");
 
-        // Coordonnées de l'en-tête (élément de droite), copiées exactement depuis l'en-tête
-        // PDF officiel fourni par l'utilisateur.
-        $this->assertStringContainsString('01 BP 348 Cotonou', $texte);
-        $this->assertStringContainsString('+229 21 30 5393', $texte); // "Tél.: ..." (accents fragment sensitive)
-        $this->assertStringContainsString('Fax : +229 21 324188', $texte);
-        $this->assertStringContainsString('contact.mesrs@gouv.bj', $texte);
+        // L'en-tête est désormais une seule image officielle (fournie par l'utilisateur,
+        // logo + coordonnées déjà intégrés) — plus aucune coordonnée n'est composée en texte.
+        $this->assertStringNotContainsString('01 BP 348 Cotonou', $texte);
+        $this->assertStringNotContainsString('contact.mesrs@gouv.bj', $texte);
 
         // Le numéro d'avis (identifiant de la fiche, saisi par l'agent) remplit le blanc en
         // tête de document — ce n'est PAS la Conclusion.
@@ -115,24 +113,17 @@ class FicheAppreciationGeneratorTest extends TestCase
         $this->assertStringContainsString($accord->conclusion_appreciation, $texte);
         $this->assertStringContainsString("le processus de signature de l'accord-cadre de partenariat entre l'UAC et le Port Autonome de Cotonou peut être enclenché, sous réserve de la prise en compte des observations faites.", $texte);
 
-        // Le logo doit flotter (ancré en haut de la marge) plutôt qu'être une image en
-        // ligne : c'est ce qui permet aux coordonnées de démarrer à la même hauteur que
-        // lui plutôt que de s'empiler dessous (vérifié visuellement après un rendu PDF).
-        $this->assertStringContainsString('position:relative', $texte, 'Le logo doit être positionné en flottant, pas en ligne.');
-        $this->assertStringContainsString('mso-position-vertical:top', $texte, 'Le logo doit être ancré en haut de la marge.');
-
-        // L'en-tête (logo flottant + coordonnées) ne doit contenir aucun tableau ni aucune
-        // tabulation (source du débordement précédent) : les coordonnées restent de simples
-        // paragraphes alignés à droite. Tout le reste (Origine/Objet/Référence/Destinataire/
-        // Observations/Conclusion) forme un unique tableau, qui doit donc apparaître après
-        // les coordonnées dans le document.
+        // L'en-tête (une seule image officielle) ne doit contenir aucun tableau ni aucune
+        // tabulation (source du débordement de l'ancienne technique par texte+tabulation).
+        // Tout le reste (Origine/Objet/Référence/Destinataire/Observations/Conclusion) forme
+        // un unique tableau, qui doit donc apparaître après l'en-tête dans le document.
         $this->assertSame(1, substr_count($texte, '<w:tbl>'), 'Un seul tableau doit exister dans le document.');
-        $this->assertStringNotContainsString('<w:tabs>', $texte, "L'en-tête ne doit plus utiliser de tabulations (source du débordement).");
-        $positionCoordonnees = strpos($texte, '01 BP 348 Cotonou');
+        $this->assertStringNotContainsString('<w:tabs>', $texte, "L'en-tête ne doit utiliser aucune tabulation.");
+        $positionDate = strpos($texte, 'Abomey-Calavi, le');
         $positionTableau = strpos($texte, '<w:tbl>');
-        $this->assertNotFalse($positionCoordonnees);
+        $this->assertNotFalse($positionDate);
         $this->assertNotFalse($positionTableau);
-        $this->assertLessThan($positionTableau, $positionCoordonnees, "L'en-tête doit précéder le tableau, pas y être imbriqué.");
+        $this->assertLessThan($positionTableau, $positionDate, "L'en-tête doit précéder le tableau, pas y être imbriqué.");
 
         // La marge supérieure doit être réduite pour remonter l'en-tête en haut de la page.
         $this->assertStringContainsString('w:top="600"', $texte);

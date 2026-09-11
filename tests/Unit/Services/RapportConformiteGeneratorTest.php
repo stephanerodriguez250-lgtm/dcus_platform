@@ -120,14 +120,10 @@ class RapportConformiteGeneratorTest extends TestCase
         $texte = $this->texteDocx($chemin);
         $styles = $this->stylesDocx($chemin);
 
-        // Même en-tête ministériel (logo flottant + coordonnées) que la fiche d'appréciation.
-        $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure le logo du ministère.");
-        $this->assertStringContainsString('01 BP 348 Cotonou', $texte);
-        $this->assertStringContainsString('Fax : +229 21 324188', $texte);
-        $this->assertStringContainsString('contact.mesrs@gouv.bj', $texte);
+        // Même en-tête ministériel (une seule image officielle) que la fiche d'appréciation.
+        $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit être l'image officielle du ministère.");
         $this->assertStringContainsString('DIRECTION DE LA COOPÉRATION UNIVERSITAIRE ET SCIENTIFIQUE', $texte);
         $this->assertStringContainsString('0145/MESRS/DC/SGM/DCUS/CJ/SA/028SGG22', $texte);
-        $this->assertStringContainsString('position:relative', $texte, 'Le logo doit être positionné en flottant, pas en ligne.');
 
         // Même police (Trebuchet MS 12pt par défaut, titre en 14pt).
         $this->assertStringContainsString('w:ascii="Trebuchet MS"', $styles);
