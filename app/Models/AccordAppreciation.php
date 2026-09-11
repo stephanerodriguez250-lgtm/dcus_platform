@@ -20,6 +20,12 @@ class AccordAppreciation extends Model
         'accord_id', 'origine', 'objet', 'avis',
         'observations_forme', 'observations_fond',
         'redige_par', 'chemin_fiche_word',
+        'chemin_fiche_ministere', 'nom_fiche_ministere',
+        'avis_mesrs_valide_le', 'avis_mesrs_valide_par',
+    ];
+
+    protected $casts = [
+        'avis_mesrs_valide_le' => 'datetime',
     ];
 
     public function accord()
@@ -30,5 +36,10 @@ class AccordAppreciation extends Model
     public function redacteur()
     {
         return $this->belongsTo(User::class, 'redige_par');
+    }
+
+    public function avisMesrsValidateur()
+    {
+        return $this->belongsTo(User::class, 'avis_mesrs_valide_par');
     }
 }

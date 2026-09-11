@@ -29,7 +29,11 @@ class DashboardController extends Controller
         foreach (Accord::$etapeLabels as $key => $label) {
             $accords_par_etape[$label] = match ($key) {
                 'recu' => Accord::doesntHave('appreciation')->count(),
-                'apprecie' => Accord::has('appreciation')->whereNull('envoye_le')->count(),
+                'apprecie' => Accord::has('appreciation')
+                    ->whereDoesntHave('appreciation', fn ($q) => $q->whereNotNull('avis_mesrs_valide_le'))
+                    ->whereNull('envoye_le')->count(),
+                'avis_mesrs' => Accord::whereHas('appreciation', fn ($q) => $q->whereNotNull('avis_mesrs_valide_le'))
+                    ->whereNull('envoye_le')->count(),
                 'envoye' => Accord::whereNotNull('envoye_le')->whereNull('date_signature')->count(),
                 'signe' => Accord::whereNotNull('date_signature')->count(),
             };

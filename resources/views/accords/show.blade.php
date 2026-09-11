@@ -22,7 +22,7 @@
 
                 <!-- Progression visuelle -->
                 @php
-                    $etapes = ['recu', 'apprecie', 'envoye', 'signe'];
+                    $etapes = ['recu', 'apprecie', 'avis_mesrs', 'envoye', 'signe'];
                     $currentIndex = array_search($accord->etape, $etapes);
                 @endphp
                 <div class="mb-4">
@@ -229,7 +229,19 @@
     <!-- Colonne latérale -->
     <div class="col-lg-4">
 
-        @if(auth()->user()->canManage() && $accord->appreciation && ! $accord->envoye_le)
+        @if(auth()->user()->peutApprecierAccords() && $accord->appreciation && ! $accord->appreciation->avis_mesrs_valide_le && ! $accord->envoye_le)
+        <div class="card mb-3">
+            <div class="card-header py-3"><i class="bi bi-bank text-primary me-2"></i>Avis MESRS</div>
+            <div class="card-body">
+                <p class="text-muted small">Chargez la fiche d'appréciation scannée du ministère pour la fusionner avec celle de la DCUS avant l'envoi à l'université.</p>
+                <a href="{{ route('accords.avis-mesrs.create', $accord) }}" class="btn btn-primary w-100">
+                    <i class="bi bi-upload me-2"></i>Charger l'avis du MESRS
+                </a>
+            </div>
+        </div>
+        @endif
+
+        @if(auth()->user()->canManage() && $accord->appreciation && $accord->appreciation->avis_mesrs_valide_le && ! $accord->envoye_le)
         <div class="card mb-3">
             <div class="card-header py-3"><i class="bi bi-send text-primary me-2"></i>Envoi au destinataire</div>
             <div class="card-body">

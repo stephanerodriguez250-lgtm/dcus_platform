@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Accord;
+use App\Models\AccordAppreciation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -17,6 +18,7 @@ class AccordEnvoiSignatureTest extends TestCase
     {
         $secretaire = User::factory()->secretaire()->create();
         $accord = Accord::factory()->create();
+        AccordAppreciation::factory()->create(['accord_id' => $accord->id, 'avis_mesrs_valide_le' => now()]);
 
         $response = $this->actingAs($secretaire)->post(route('accords.envoyer', $accord));
 
@@ -34,6 +36,19 @@ class AccordEnvoiSignatureTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
+    }
+
+    public function test_cannot_mark_as_sent_before_the_ministry_avis_is_validated(): void
+    {
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create();
+        AccordAppreciation::factory()->create(['accord_id' => $accord->id]);
+
+        $response = $this->actingAs($secretaire)->post(route('accords.envoyer', $accord));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->assertNull($accord->fresh()->envoye_le);
     }
 
     public function test_secretaire_can_record_the_signature_and_expiration_is_calculated(): void

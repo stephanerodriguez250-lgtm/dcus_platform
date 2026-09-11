@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccordAppreciateurController;
 use App\Http\Controllers\AccordAppreciationController;
+use App\Http\Controllers\AccordAvisMesrsController;
 use App\Http\Controllers\AccordConformiteController;
 use App\Http\Controllers\AccordController;
 use App\Http\Controllers\ArchiveController;
@@ -110,6 +111,13 @@ Route::middleware('auth')->group(function () {
         ->name('accords.apprecier.suggestion');
     Route::get('accords/appreciations/{appreciation}/telecharger', [AccordAppreciationController::class, 'telecharger'])
         ->name('accords.appreciations.telecharger');
+
+    Route::get('accords/{accord}/avis-mesrs', [AccordAvisMesrsController::class, 'create'])
+        ->name('accords.avis-mesrs.create');
+    Route::post('accords/{accord}/avis-mesrs', [AccordAvisMesrsController::class, 'store'])
+        ->name('accords.avis-mesrs.store');
+    Route::post('accords/{accord}/avis-mesrs/suggestion', [AccordAvisMesrsController::class, 'suggerer'])
+        ->name('accords.avis-mesrs.suggestion');
 
     Route::post('accords/{accord}/analyser-conformite', [AccordConformiteController::class, 'analyser'])
         ->name('accords.analyser-conformite');

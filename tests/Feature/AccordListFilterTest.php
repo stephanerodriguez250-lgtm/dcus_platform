@@ -19,12 +19,20 @@ class AccordListFilterTest extends TestCase
         $recu = Accord::factory()->create();
         $apprecie = Accord::factory()->create();
         AccordAppreciation::factory()->create(['accord_id' => $apprecie->id]);
+        $avisMesrs = Accord::factory()->create();
+        AccordAppreciation::factory()->create(['accord_id' => $avisMesrs->id, 'avis_mesrs_valide_le' => now()]);
         $envoye = Accord::factory()->create(['envoye_le' => now()]);
         AccordAppreciation::factory()->create(['accord_id' => $envoye->id]);
         $signe = Accord::factory()->create(['envoye_le' => now(), 'date_signature' => now()]);
         AccordAppreciation::factory()->create(['accord_id' => $signe->id]);
 
-        $casAttendus = ['recu' => $recu, 'apprecie' => $apprecie, 'envoye' => $envoye, 'signe' => $signe];
+        $casAttendus = [
+            'recu' => $recu,
+            'apprecie' => $apprecie,
+            'avis_mesrs' => $avisMesrs,
+            'envoye' => $envoye,
+            'signe' => $signe,
+        ];
 
         foreach ($casAttendus as $etape => $accordAttendu) {
             $response = $this->actingAs($user)->get(route('accords.index', ['etape' => $etape]));

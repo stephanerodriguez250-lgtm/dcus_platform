@@ -43,6 +43,7 @@ class Accord extends Model
     public static array $etapeLabels = [
         'recu' => 'Reçu',
         'apprecie' => 'Apprécié',
+        'avis_mesrs' => 'Avis MESRS',
         'envoye' => 'Envoyé',
         'signe' => 'Signé',
     ];
@@ -50,6 +51,7 @@ class Accord extends Model
     public static array $etapeColors = [
         'recu' => 'secondary',
         'apprecie' => 'info',
+        'avis_mesrs' => 'primary',
         'envoye' => 'warning',
         'signe' => 'success',
     ];
@@ -83,6 +85,9 @@ class Accord extends Model
         }
         if ($this->envoye_le) {
             return 'envoye';
+        }
+        if ($this->appreciation?->avis_mesrs_valide_le) {
+            return 'avis_mesrs';
         }
         if ($this->appreciation) {
             return 'apprecie';

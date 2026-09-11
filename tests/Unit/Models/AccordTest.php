@@ -27,6 +27,15 @@ class AccordTest extends TestCase
         $this->assertSame('apprecie', $accord->fresh()->etape);
     }
 
+    public function test_etape_is_avis_mesrs_once_the_ministry_opinion_is_validated(): void
+    {
+        $accord = Accord::factory()->create();
+        AccordAppreciation::factory()->create(['accord_id' => $accord->id, 'avis_mesrs_valide_le' => now()]);
+
+        $this->assertSame('avis_mesrs', $accord->fresh()->etape);
+        $this->assertSame('Avis MESRS', $accord->fresh()->etape_label);
+    }
+
     public function test_etape_is_envoye_once_marked_sent(): void
     {
         $accord = Accord::factory()->create(['envoye_le' => now()]);
