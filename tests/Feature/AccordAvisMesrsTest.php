@@ -226,6 +226,28 @@ class AccordAvisMesrsTest extends TestCase
         Storage::disk('public')->assertMissing($ancienneFicheWord);
     }
 
+    public function test_secretaire_can_validate_the_avis_manually_without_uploading_a_scan(): void
+    {
+        Storage::fake('public');
+        $secretaire = User::factory()->secretaire()->create();
+        $accord = Accord::factory()->create();
+        AccordAppreciation::factory()->create(['accord_id' => $accord->id]);
+
+        $response = $this->actingAs($secretaire)->post(route('accords.avis-mesrs.store', $accord), [
+            'observations_forme' => "- Paginer.\n- Ajouter la date (saisi manuellement).",
+            'observations_fond' => "- Comité de suivi à préciser.\n- Clarifier la résiliation (saisi manuellement).",
+        ]);
+
+        $response->assertRedirect(route('accords.show', $accord));
+        $appreciation = $accord->fresh()->appreciation;
+        $this->assertNotNull($appreciation->avis_mesrs_valide_le);
+        $this->assertSame($secretaire->id, $appreciation->avis_mesrs_valide_par);
+        $this->assertNull($appreciation->chemin_fiche_ministere);
+        $this->assertSame("- Paginer.\n- Ajouter la date (saisi manuellement).", $appreciation->observations_forme);
+        $this->assertNotNull($appreciation->chemin_fiche_word);
+        $this->assertSame('avis_mesrs', $accord->fresh()->etape);
+    }
+
     public function test_store_rejects_a_chemin_fiche_ministere_outside_the_avis_mesrs_directory(): void
     {
         Storage::fake('public');

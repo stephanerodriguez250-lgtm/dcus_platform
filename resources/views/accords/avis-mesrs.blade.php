@@ -22,11 +22,13 @@
                 @endif
 
                 <div class="alert alert-light border small mb-4">
-                    Chargez la version scannée de la fiche d'appréciation du ministère. L'IA lit ses
+                    Chargez la version scannée de la fiche d'appréciation du ministère : l'IA lit ses
                     observations sur la forme et sur le fond et les fusionne avec celles déjà
                     rédigées par la DCUS ci-dessous — relisez attentivement le résultat avant de
                     valider, aucun point ne doit être perdu et les points répétés entre les deux
-                    fiches ne doivent apparaître qu'une seule fois.
+                    fiches ne doivent apparaître qu'une seule fois. Le chargement n'est pas
+                    obligatoire : vous pouvez aussi saisir ou compléter vous-même les observations
+                    du ministère directement dans les champs ci-dessous.
                 </div>
 
                 <div class="row g-3 align-items-end mb-4">

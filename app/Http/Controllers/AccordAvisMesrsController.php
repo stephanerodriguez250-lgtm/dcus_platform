@@ -75,18 +75,23 @@ class AccordAvisMesrsController extends Controller
         }
 
         $data = $request->validate([
-            // Restreint volontairement au dossier alimenté par suggerer() : sans cette
+            // Facultatif : l'agent peut valider l'avis MESRS sans jamais charger de scan, en
+            // saisissant lui-même les observations du ministère. Quand un fichier est fourni,
+            // restreint volontairement au dossier alimenté par suggerer() : sans cette
             // contrainte, un agent pourrait faire pointer ce champ (une simple valeur postée)
             // vers n'importe quel fichier existant du disque public (document signé d'un autre
             // accord, archive d'un autre utilisateur...), qui serait ensuite supprimé par la
             // purge de l'"ancien" fichier lors d'une resoumission ultérieure.
-            'chemin_fiche_ministere' => ['required', 'string', 'regex:/^accords\/avis-mesrs\/[A-Za-z0-9._-]+$/'],
-            'nom_fiche_ministere' => 'required|string|max:255',
+            'chemin_fiche_ministere' => ['nullable', 'string', 'regex:/^accords\/avis-mesrs\/[A-Za-z0-9._-]+$/'],
+            'nom_fiche_ministere' => 'nullable|string|max:255',
             'observations_forme' => 'nullable|string',
             'observations_fond' => 'nullable|string',
         ]);
 
-        if (! Storage::disk('public')->exists($data['chemin_fiche_ministere'])) {
+        $cheminFicheMinistere = $data['chemin_fiche_ministere'] ?? null;
+        $nomFicheMinistere = $data['nom_fiche_ministere'] ?? null;
+
+        if ($cheminFicheMinistere && ! Storage::disk('public')->exists($cheminFicheMinistere)) {
             return back()->withErrors([
                 'chemin_fiche_ministere' => "Le fichier analysé est introuvable, veuillez relancer l'analyse IA.",
             ]);
@@ -96,8 +101,8 @@ class AccordAvisMesrsController extends Controller
         $ancienneFicheWord = $appreciation->chemin_fiche_word;
 
         $appreciation->update([
-            'chemin_fiche_ministere' => $data['chemin_fiche_ministere'],
-            'nom_fiche_ministere' => $data['nom_fiche_ministere'],
+            'chemin_fiche_ministere' => $cheminFicheMinistere,
+            'nom_fiche_ministere' => $nomFicheMinistere,
             'observations_forme' => $data['observations_forme'] ?? null,
             'observations_fond' => $data['observations_fond'] ?? null,
             'avis_mesrs_valide_le' => now(),
@@ -110,7 +115,7 @@ class AccordAvisMesrsController extends Controller
         if ($ancienneFicheWord && $ancienneFicheWord !== $chemin) {
             Storage::disk('public')->delete($ancienneFicheWord);
         }
-        if ($ancienFichierMinistere && $ancienFichierMinistere !== $data['chemin_fiche_ministere']) {
+        if ($ancienFichierMinistere && $ancienFichierMinistere !== $cheminFicheMinistere) {
             Storage::disk('public')->delete($ancienFichierMinistere);
         }
 
