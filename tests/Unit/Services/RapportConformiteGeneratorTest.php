@@ -122,8 +122,8 @@ class RapportConformiteGeneratorTest extends TestCase
 
         // Même en-tête ministériel (logo flottant + coordonnées) que la fiche d'appréciation.
         $this->assertTrue($this->contientUneImage($chemin), "L'en-tête doit inclure le logo du ministère.");
-        $this->assertStringContainsString('Cité Ministérielle-Bâtiment F', $texte);
-        $this->assertStringContainsString('Adresse postale : 01 BP 348 Cotonou', $texte);
+        $this->assertStringContainsString('01 BP 348 Cotonou', $texte);
+        $this->assertStringContainsString('Fax : +229 21 324188', $texte);
         $this->assertStringContainsString('contact.mesrs@gouv.bj', $texte);
         $this->assertStringContainsString('DIRECTION DE LA COOPÉRATION UNIVERSITAIRE ET SCIENTIFIQUE', $texte);
         $this->assertStringContainsString('0145/MESRS/DC/SGM/DCUS/CJ/SA/028SGG22', $texte);
